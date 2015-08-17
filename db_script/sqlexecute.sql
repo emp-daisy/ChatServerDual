@@ -1,0 +1,3 @@
+CREATE SCHEMA chatServer
+CREATE TABLE chatServer.RegTable(Mobile VARCHAR(20) NOT NULL, RegId VARCHAR(40) NOT NULL, PRIMARY KEY(Mobile));
+INSERT INTO chatServer.RegTable(Mobile, RegId) VALUES ('+2348132229044', 'qwerty123ASDF');
