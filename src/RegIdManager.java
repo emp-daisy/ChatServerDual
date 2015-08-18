@@ -10,7 +10,6 @@ public class RegIdManager {
 	static Connection con;
 	
 	public RegIdManager(){
-		//String p = getClass().getResource("db_script.script").getPath();
 		String p = new File("src/db_script.script").getAbsolutePath();
 		String connpath = p.substring(0,p.lastIndexOf(".")).replaceAll("/", "\\\\");
 
@@ -18,9 +17,7 @@ public class RegIdManager {
 		try {
             Class.forName("org.hsqldb.jdbcDriver");
             System.out.println("loaded class");
-            //con = DriverManager.getConnection("jdbc:hsqldb:file:\\tomcat\\webapps\\ChatServerDual\\db_script", "sa", "");
             con = DriverManager.getConnection("jdbc:hsqldb:file:"+connpath, "sa", "");
-            
             System.out.println("created con");
 		}catch(ClassNotFoundException a){
 			System.out.println("Exception: " + a);
@@ -33,16 +30,24 @@ public class RegIdManager {
 
         PreparedStatement ps;
 		try {
-			ps = con.prepareStatement("INSERT INTO chatServer.RegTable(Mobile, RegId) VALUES (?,?)");
-
-	        ps.setString(1, pNo);
-	        ps.setString(2, regId);
-	        ps.executeUpdate();
+			if(readFromFile(pNo).isEmpty()){
+				ps = con.prepareStatement("INSERT INTO chatServer.RegTable(Mobile, RegId) VALUES (?,?)");
+		        ps.setString(1, pNo);
+		        ps.setString(2, regId);
+		        ps.executeUpdate();	
+			}
+			else{
+				ps = con.prepareStatement("UPDATE chatServer.RegTable SET RegId = ? WHERE Mobile=?");
+				ps.setString(1, regId);
+		        ps.setString(2, pNo);
+		        ps.executeUpdate();
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
+	
 
 	public Set<String> readFromFile(String mobi) throws SQLException{
 		Set<String> regIdSet = new HashSet<String>();

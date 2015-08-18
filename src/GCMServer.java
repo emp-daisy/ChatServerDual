@@ -18,12 +18,8 @@ public class GCMServer extends HttpServlet {
 	
 	// Put your Google API Server Key here
 		private static final String GOOGLE_SERVER_KEY = "AIzaSyDZ60w-JN-RzBHk1litPqzKtzqThmZnpaY";
-
 		// Put your Google Project number here
 		final String GOOGLE_USERNAME = "512212818580" + "@gcm.googleapis.com";
-		
-		//RequestDispatch page
-		String page_url;
 		RegIdManager db;
 		
        
@@ -50,43 +46,39 @@ public class GCMServer extends HttpServlet {
 		// TODO Auto-generated method stub
 		PrintWriter out = response.getWriter();
 		out.println("Hi<BR>");
-
+		out.println("Calling DB<BR>");
         db = new RegIdManager();
+		out.println("Called<BR>");
+		
 			try {
-				out.println("Calling DB<BR>");
-
-				out.println("Called<BR>");
 				String regKey = request.getParameter("RegNo");
 				String mobile = request.getParameter("MobileNo");
 				out.println("Entered<BR>");
 				
 				if(request.getParameter("Register") != null){
 					db.writeToFile(mobile, regKey);
-					System.out.println("Registered");
+					System.out.println("Registered: " + mobile);
+					out.println("Registered: " + mobile + "<BR>");
 					request.setAttribute("pushStatus", "Registered.");
 				}
 				else if(request.getParameter("Message") != null){
 					String userMessage = request.getParameter("msg");
 					String mobileNumTo = request.getParameter("MobileNumberTo");
 					Set<String> regIdSet = db.readFromFile(mobileNumTo);
-					System.out.println(regIdSet);
 					String toDeviceRegId = (String) (regIdSet.toArray())[0];
-					System.out.println(toDeviceRegId);
-					out.println("ToDeviceRegID: " + toDeviceRegId + "<BR>");
+					System.out.println("SENT " + userMessage + " TO " + toDeviceRegId);
+					out.println("SENT " + userMessage + " TO " + toDeviceRegId+ "<BR>");
 					SmackClient.sendMessage(toDeviceRegId, GOOGLE_SERVER_KEY, userMessage);
 					request.setAttribute("pushStatus", "Message Sent.");
 				}
-				page_url = "index.jsp";
-				db.dbShutdown();
+				if(db != null){db.dbShutdown();}
 			} catch (Exception ioe) {
 				request.setAttribute("pushStatus","RegId required: " + ioe.toString());
-				page_url = "error.jsp";
 			}finally{
 				System.out.println("Push Status: " + request.getAttribute("pushStatus"));
+				out.println("Push Status: " + request.getAttribute("pushStatus"));
 				out.close();
 			}
-			//RequestDispatcher r = request.getRequestDispatcher(page_url);
-			//r.forward(request, response);
 	}
 
 	@Override
@@ -97,6 +89,4 @@ public class GCMServer extends HttpServlet {
 			db.dbShutdown();
 	}
 	
-	
-
 }

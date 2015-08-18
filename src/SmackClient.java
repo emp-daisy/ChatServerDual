@@ -7,8 +7,6 @@ import java.util.logging.Logger;
 
 import javax.net.ssl.SSLSocketFactory;
 
-import org.jivesoftware.smack.AbstractXMPPConnection;
-import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.SmackException.NotConnectedException;
@@ -26,13 +24,9 @@ import org.jivesoftware.smack.provider.ProviderManager;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smack.util.StringUtils;
-import org.jivesoftware.smackx.bytestreams.ibb.packet.DataPacketExtension;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 import org.xmlpull.v1.XmlPullParser;
-
-import org.jivesoftware.smack.*;
-import org.jivesoftware.smack.roster.Roster;
 
 
 
@@ -47,9 +41,6 @@ public class SmackClient {
 	public static final String GCM_ELEMENT_NAME = "gcm";
 	public static final String GCM_NAMESPACE = "google:mobile:data";
 	
-	private static final String YOUR_API_KEY = "AIzaSyDZ60w-JN-RzBHk1litPqzKtzqThmZnpaY"; // your API Key
-    private static final String YOUR_PHONE_REG_ID = "";
-
 	static Random random = new Random();
 	XMPPTCPConnection  connection;
 	XMPPTCPConnectionConfiguration  config;
@@ -278,8 +269,7 @@ public class SmackClient {
 		
 		String from = jsonObject.get("from").toString();
 
-		// PackageName of the application that sent this message.
-		String category = jsonObject.get("category").toString();
+		jsonObject.get("category").toString();
 
 		// Use the packageName as the collapseKey in the echo packet
 		String collapseKey = "echo:CollapseKey";
