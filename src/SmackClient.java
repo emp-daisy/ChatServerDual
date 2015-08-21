@@ -21,6 +21,7 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.provider.ExtensionElementProvider;
 import org.jivesoftware.smack.provider.ProviderManager;
+import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smack.util.StringUtils;
@@ -36,8 +37,8 @@ public class SmackClient {
 
 	public static final String GCM_SERVER = "gcm.googleapis.com";
 	public static final int GCM_PORT = 5235;
-	public static final String YOUR_PROJECT_ID = "dual-digital-000";
-
+	public static final String YOUR_PROJECT_ID = "25515784135";
+	
 	public static final String GCM_ELEMENT_NAME = "gcm";
 	public static final String GCM_NAMESPACE = "google:mobile:data";
 	
@@ -82,8 +83,9 @@ public class SmackClient {
     		     .setSocketFactory(SSLSocketFactory.getDefault())
     		    .build();
 		
-		
 		connection = new XMPPTCPConnection(config);
+		Roster roster = Roster.getInstanceFor(connection);  
+	    roster.setRosterLoadedAtLogin(false); 
 		logger.info("Connecting...");
 		connection.connect();
 		connection.addConnectionListener(new ConnectionListener() {
@@ -91,11 +93,13 @@ public class SmackClient {
 			@Override
 			public void reconnectionSuccessful() {
 				logger.info("Reconnecting..");
+				System.out.println("Reconnecting..");
 			}
 
 			@Override
 			public void reconnectionFailed(Exception e) {
 				logger.log(Level.INFO, "Reconnection failed.. ", e);
+				System.out.println("Reconnection failed.. " +  e);
 			}
 
 			@Override
@@ -111,12 +115,14 @@ public class SmackClient {
 			@Override
 			public void connectionClosed() {
 				logger.info("Connection closed.");
+				System.out.println("Connection closed.");
 			}
 
 			@Override
 			public void connected(XMPPConnection arg0) {
 				// TODO Auto-generated method stub
 				//logger.info(".");
+				System.out.println("Connected.");
 			}
 
 			@Override
@@ -138,7 +144,8 @@ public class SmackClient {
 			}
 			
 		}, new FilterStanza());
-		connection.login(senderId + "@gcm.googleapis.com" , apiKey);
+		connection.login(YOUR_PROJECT_ID + "@gcm.googleapis.com" , apiKey);
+		//connection.login(senderId, apiKey);
 	}
 	
 	public static void sendMessage(String toDeviceRegId, final String GOOGLE_SERVER_KEY , String message) throws SmackException, IOException, ClassNotFoundException {

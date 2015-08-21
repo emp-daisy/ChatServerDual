@@ -12,12 +12,13 @@ public class RegIdManager {
 	public RegIdManager(){
 		String p = new File("src/db_script.script").getAbsolutePath();
 		String connpath = p.substring(0,p.lastIndexOf(".")).replaceAll("/", "\\\\");
+		String x = "C:\\Users\\tunde_000\\Documents\\myGit\\ChatServerDual\\src\\db_script";
 
 
 		try {
             Class.forName("org.hsqldb.jdbcDriver");
             System.out.println("loaded class");
-            con = DriverManager.getConnection("jdbc:hsqldb:file:"+connpath, "sa", "");
+            con = DriverManager.getConnection("jdbc:hsqldb:file:"+x, "sa", "");
             System.out.println("created con");
 		}catch(ClassNotFoundException a){
 			System.out.println("Exception: " + a);
@@ -88,7 +89,7 @@ public class RegIdManager {
 		try {
             Class.forName("org.hsqldb.jdbc.JDBCDriver");
             System.out.println("loaded class");
-            con = DriverManager.getConnection("jdbc:hsqldb:file:\\tomcat\\webapps\\ChatServerDual\\db_script", "sa", "");
+            con = DriverManager.getConnection("jdbc:hsqldb:C:\\Users\\tunde_000\\Documents\\myGit\\ChatServerDual\\src\\db_script", "sa", "");
             System.out.println("created con");
         } catch (Exception e) {
             System.out.println("Exception: " + e);
