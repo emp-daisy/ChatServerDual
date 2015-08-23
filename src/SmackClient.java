@@ -148,7 +148,7 @@ public class SmackClient {
 		//connection.login(senderId, apiKey);
 	}
 	
-	public static void sendMessage(String toDeviceRegId, final String GOOGLE_SERVER_KEY , String message) throws SmackException, IOException, ClassNotFoundException {
+	public static void sendMessage(String toDeviceRegId, final String GOOGLE_SERVER_KEY , String message, String contactId, String type, String time) throws SmackException, IOException, ClassNotFoundException {
 
 		SmackClient ccsClient = new SmackClient();
 
@@ -157,11 +157,19 @@ public class SmackClient {
 		} catch (XMPPException e) {
 			e.printStackTrace();
 		}
-
+		if(contactId == "")
+			contactId = "tunde";
+		if(type == "")
+			type = "msg";
+		if(time == "")
+			time = "05/05/05 22:00:00";
+			
 		String messageId = ccsClient.getRandomMessageId();
 		Map<String, String> payload = new HashMap<String, String>();
-		payload.put(MESSAGE_KEY, message);
-		payload.put("EmbeddedMessageId", messageId);
+		payload.put("GCM_msg", message);
+		payload.put("Type", type);
+		payload.put("GCM_contactId", message);
+		payload.put("GCM_time", time);
 		String collapseKey = "sample";
 		Long timeToLive = 10000L;
 		Boolean delayWhileIdle = true;

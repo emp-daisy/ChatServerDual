@@ -9,12 +9,12 @@
 <body>
 <form action="GCMServer">
 	Enter message:  
-	<input type="text" name="msg"><br>
+	<input type="text" name="GCM_msg"><br>
 	Enter reciepent's name:  
-	<input type="text" name="contact"><br>
+	<input type="text" name="GCM_contactId"><br>
 	Enter receipent's nunmber: 
-	<input type="text" name="MobileNumberTo"><br>
-	<input type="hidden" name="Message" value="Yes"><br>
+	<input type="text" name="GCM_phoneNumber"><br>
+	<input type="hidden" name="Type" value="msg"><br>
 	<input type="submit" value="submit">	
 </form>
 </body>

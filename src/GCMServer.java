@@ -61,15 +61,28 @@ public class GCMServer extends HttpServlet {
 					out.println("Registered: " + mobile + "<BR>");
 					request.setAttribute("pushStatus", "Registered.");
 				}
-				else if(request.getParameter("Message") != null){
-					String userMessage = request.getParameter("msg");
-					String mobileNumTo = request.getParameter("MobileNumberTo");
+				else if(request.getParameter("Type").equals("msg")){
+					String type = request.getParameter("Type");
+					String userMessage = request.getParameter("GCM_msg");
+					String time = request.getParameter("GCM_time");
+					String contactId = request.getParameter("GCM_contactId");
+					String mobileNumTo = request.getParameter("GCM_phoneNumber");
+					
 					Set<String> regIdSet = db.readFromFile(mobileNumTo);
 					String toDeviceRegId = (String) (regIdSet.toArray())[0];
 					System.out.println("SENT " + userMessage + " TO " + toDeviceRegId);
 					out.println("SENT " + userMessage + " TO " + toDeviceRegId+ "<BR>");
-					SmackClient.sendMessage(toDeviceRegId, GOOGLE_SERVER_KEY, userMessage);
+					SmackClient.sendMessage(toDeviceRegId, GOOGLE_SERVER_KEY, userMessage, contactId, type, time);
 					request.setAttribute("pushStatus", "Message Sent.");
+				}else if(request.getParameter("Type").equals("contact")){
+					String type = request.getParameter("Type");
+					String regNo = request.getParameter("RegNo");
+				}else if(request.getParameter("Type").equals("Feed")){
+					String feed = request.getParameter("GCM_Feed");
+					String text = request.getParameter("msg");
+					out.println(feed);
+					System.out.println(feed);
+					System.out.println(text);
 				}
 				if(db != null){db.dbShutdown();}
 			} catch (Exception ioe) {
