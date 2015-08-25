@@ -12,13 +12,11 @@ public class RegIdManager {
 	public RegIdManager(){
 		String p = new File("src/db_script.script").getAbsolutePath();
 		String connpath = p.substring(0,p.lastIndexOf(".")).replaceAll("/", "\\\\");
-		String x = "C:\\Users\\tunde_000\\Documents\\myGit\\ChatServerDual\\src\\db_script";
-
 
 		try {
             Class.forName("org.hsqldb.jdbcDriver");
             System.out.println("loaded class");
-            con = DriverManager.getConnection("jdbc:hsqldb:file:"+x, "sa", "");
+            con = DriverManager.getConnection("jdbc:hsqldb:file:"+connpath, "sa", "");
             System.out.println("created con");
 		}catch(ClassNotFoundException a){
 			System.out.println("Exception: " + a);

@@ -158,7 +158,7 @@ public class SmackClient {
 			e.printStackTrace();
 		}
 		if(contactId == "")
-			contactId = "tunde";
+			contactId = "07944447710";
 		if(type == "")
 			type = "msg";
 		if(time == "")
@@ -168,7 +168,7 @@ public class SmackClient {
 		Map<String, String> payload = new HashMap<String, String>();
 		payload.put("GCM_msg", message);
 		payload.put("Type", type);
-		payload.put("GCM_contactId", message);
+		payload.put("GCM_contactId", contactId);
 		payload.put("GCM_time", time);
 		String collapseKey = "sample";
 		Long timeToLive = 10000L;

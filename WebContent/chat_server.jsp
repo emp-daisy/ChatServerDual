@@ -10,10 +10,8 @@
 <form action="GCMServer">
 	Enter message:  
 	<input type="text" name="GCM_msg"><br>
-	Enter reciepent's name:  
+	Enter reciepent's number:  
 	<input type="text" name="GCM_contactId"><br>
-	Enter receipent's nunmber: 
-	<input type="text" name="GCM_phoneNumber"><br>
 	<input type="hidden" name="Type" value="msg"><br>
 	<input type="submit" value="submit">	
 </form>

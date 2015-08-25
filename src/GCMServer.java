@@ -21,6 +21,8 @@ public class GCMServer extends HttpServlet {
 		// Put your Google Project number here
 		final String GOOGLE_USERNAME = "512212818580" + "@gcm.googleapis.com";
 		RegIdManager db;
+		String url = "http://localhost:8080/ChatServerDual/";
+		String page;
 		
        
     /**
@@ -66,15 +68,16 @@ public class GCMServer extends HttpServlet {
 					String userMessage = request.getParameter("GCM_msg");
 					String time = request.getParameter("GCM_time");
 					String contactId = request.getParameter("GCM_contactId");
-					String mobileNumTo = request.getParameter("GCM_phoneNumber");
 					
-					Set<String> regIdSet = db.readFromFile(mobileNumTo);
+					Set<String> regIdSet = db.readFromFile(contactId);
 					String toDeviceRegId = (String) (regIdSet.toArray())[0];
 					System.out.println("SENT " + userMessage + " TO " + toDeviceRegId);
 					out.println("SENT " + userMessage + " TO " + toDeviceRegId+ "<BR>");
 					SmackClient.sendMessage(toDeviceRegId, GOOGLE_SERVER_KEY, userMessage, contactId, type, time);
 					request.setAttribute("pushStatus", "Message Sent.");
-				}else if(request.getParameter("Type").equals("contact")){
+					page = "/chat_server.jsp";
+				}
+				else if(request.getParameter("Type").equals("contact")){
 					String type = request.getParameter("Type");
 					String regNo = request.getParameter("RegNo");
 				}else if(request.getParameter("Type").equals("Feed")){
