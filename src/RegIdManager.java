@@ -50,7 +50,7 @@ public class RegIdManager {
 
 	public Set<String> readFromFile(String mobi) throws SQLException{
 		Set<String> regIdSet = new HashSet<String>();
-		String query = "Select * from chatServer.RegTable WHERE Mobile =" + mobi;
+		String query = "Select * from chatServer.RegTable WHERE Mobile ='" + mobi + "'";
 
         Statement s = con.createStatement();
         ResultSet rs = s.executeQuery(query);

@@ -1,5 +1,8 @@
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -29,6 +32,9 @@ import org.jivesoftware.smack.util.StringUtils;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 import org.xmlpull.v1.XmlPullParser;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 
 
@@ -167,6 +173,22 @@ public class SmackClient {
 		System.out.println("Message: '" + message + "' has been sent");
 	}
 	
+	public void sendContacts(String toDeviceRegId, final String GOOGLE_SERVER_KEY , ArrayList<String> message) throws SmackException, IOException, ClassNotFoundException {
+			
+		String messageId = getRandomMessageId();
+		Map<String, String> payload = new HashMap<String, String>();
+		Gson gson = new Gson();
+		String jsonPhoneList = gson.toJson(message);
+		payload.put("Type", "Contacts");
+		payload.put("Contacts", jsonPhoneList);
+		String collapseKey = "sample";
+		Long timeToLive = 10000L;
+		Boolean delayWhileIdle = true;
+		send(createJsonMessage(toDeviceRegId, messageId, payload,
+				collapseKey, timeToLive, delayWhileIdle));
+		System.out.println("Contacts have been sent");
+	}
+	
 	 //XML Packet Extension
 	private static final class GcmPacketExtension extends DefaultExtensionElement{
 
@@ -282,15 +304,11 @@ public class SmackClient {
 
 		String action = payload.get("Type");
 		System.out.println("Action is: " + action);
-		String userMessage = payload.get("GCM_msg");
-		System.out.println("Message is: " + userMessage);
+		
 		if ("msg".equals(action)) {
-			String clientMessage = payload.get("CLIENT_MESSAGE");
-			payload.put(MESSAGE_KEY, "ECHO: " + clientMessage);
-			
 			String type = payload.get("Type");
-			String userMessage1 = payload.get("GCM_msg");
-			System.out.println("Message is: " + userMessage1);
+			String userMessage = payload.get("GCM_msg");
+			System.out.println("Message is: " + userMessage);
 			String time = payload.get("GCM_time");
 			String mobileNumTo = payload.get("GCM_contactId");
 			RegIdManager db = new RegIdManager();
@@ -306,8 +324,35 @@ public class SmackClient {
 			String echo = createJsonMessage(from, getRandomMessageId(),
 					payload, collapseKey, null, false);
 			send(echo);*/
-		} else if ("contact".equals(action)) {
-			
+		} else if ("Contacts".equals(action)) {
+			String list = payload.get("List");
+			Gson gson = new Gson();
+			TypeToken<List<String>> token = new TypeToken<List<String>>() {};
+			List<String> phoneContacts = gson.fromJson(list, token.getType());
+			ArrayList<String> sendContacts = new ArrayList();
+			RegIdManager db = new RegIdManager();
+			for(String x : phoneContacts){
+				Set<String> regIdSet;
+				try {
+					regIdSet = db.readFromFile(x);
+					if(!regIdSet.isEmpty()){
+						String numb = (String) (regIdSet.toArray())[0];
+						if(numb != null)
+							sendContacts.add(x);
+					}
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			db.dbShutdown();
+			String goingTo = payload.get("from");
+			try {
+				sendContacts(goingTo, GOOGLE_SERVER_KEY, sendContacts);
+			} catch (ClassNotFoundException | SmackException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		} else if ("Feed".equals(action)){
 			
 		}

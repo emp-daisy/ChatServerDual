@@ -86,24 +86,6 @@ public class GCMServer extends HttpServlet {
 					System.out.println(feed);
 					System.out.println(text);
 				}
-				/*else if(request.getParameter("Type").equals("msg")){
-					String type = request.getParameter("Type");
-					String userMessage = request.getParameter("GCM_msg");
-					String time = request.getParameter("GCM_time");
-					String contactId = request.getParameter("GCM_contactId");
-					
-					Set<String> regIdSet = db.readFromFile(contactId);
-					String toDeviceRegId = (String) (regIdSet.toArray())[0];
-					System.out.println("SENT " + userMessage + " TO " + toDeviceRegId);
-					out.println("SENT " + userMessage + " TO " + toDeviceRegId+ "<BR>");
-					sendMessage(toDeviceRegId, GOOGLE_SERVER_KEY, userMessage, contactId, type, time);
-					request.setAttribute("pushStatus", "Message Sent.");
-					page = "/chat_server.jsp";
-				}
-				else if(request.getParameter("Type").equals("contact")){
-					String type = request.getParameter("Type");
-					String regNo = request.getParameter("RegNo");
-				}*/
 				if(db != null){db.dbShutdown();}
 			} catch (Exception ioe) {
 				request.setAttribute("pushStatus","RegId required: " + ioe.toString());
