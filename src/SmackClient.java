@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,6 +35,7 @@ import org.xmlpull.v1.XmlPullParser;
 public class SmackClient {
 	static final String MESSAGE_KEY = "SERVER_MESSAGE";
 	Logger logger = Logger.getLogger("SmackCcsClient");
+	private static final String GOOGLE_SERVER_KEY = "AIzaSyDZ60w-JN-RzBHk1litPqzKtzqThmZnpaY";
 
 	public static final String GCM_SERVER = "gcm.googleapis.com";
 	public static final int GCM_PORT = 5235;
@@ -133,30 +135,17 @@ public class SmackClient {
 
 		});
 		
-		connection.addStanzaAcknowledgedListener(new StanzaListenTool());
-		connection.addPacketInterceptor(new StanzaListener(){
-
-			@Override
-			public void processPacket(Stanza arg0)
-					throws NotConnectedException {
-				// TODO Auto-generated method stub
-				logger.log(Level.INFO, "Sent: {0}", arg0.toXML());
-			}
-			
-		}, new FilterStanza());
 		connection.login(YOUR_PROJECT_ID + "@gcm.googleapis.com" , apiKey);
+		
+		//connection.addStanzaAcknowledgedListener(new StanzaListenTool());
+		FilterStanza filter = new FilterStanza();
+		StanzaListenTool stanza = new StanzaListenTool();
+		connection.addAsyncStanzaListener(stanza, filter);
 		//connection.login(senderId, apiKey);
 	}
 	
-	public static void sendMessage(String toDeviceRegId, final String GOOGLE_SERVER_KEY , String message, String contactId, String type, String time) throws SmackException, IOException, ClassNotFoundException {
-
-		SmackClient ccsClient = new SmackClient();
-
-		try {
-			ccsClient.connect(toDeviceRegId, GOOGLE_SERVER_KEY);
-		} catch (XMPPException e) {
-			e.printStackTrace();
-		}
+	public void sendMessage(String toDeviceRegId, final String GOOGLE_SERVER_KEY , String message, String contactId, String type, String time) throws SmackException, IOException, ClassNotFoundException {
+		
 		if(contactId == "")
 			contactId = "07944447710";
 		if(type == "")
@@ -164,7 +153,7 @@ public class SmackClient {
 		if(time == "")
 			time = "05/05/05 22:00:00";
 			
-		String messageId = ccsClient.getRandomMessageId();
+		String messageId = getRandomMessageId();
 		Map<String, String> payload = new HashMap<String, String>();
 		payload.put("GCM_msg", message);
 		payload.put("Type", type);
@@ -173,8 +162,9 @@ public class SmackClient {
 		String collapseKey = "sample";
 		Long timeToLive = 10000L;
 		Boolean delayWhileIdle = true;
-		ccsClient.send(createJsonMessage(toDeviceRegId, messageId, payload,
+		send(createJsonMessage(toDeviceRegId, messageId, payload,
 				collapseKey, timeToLive, delayWhileIdle));
+		System.out.println("Message: '" + message + "' has been sent");
 	}
 	
 	 //XML Packet Extension
@@ -282,35 +272,48 @@ public class SmackClient {
 	public void handleIncomingDataMessage(Map<String, Object> jsonObject) throws NotConnectedException {
 		
 		
-		String from = jsonObject.get("from").toString();
-
+		//String from = jsonObject.get("from").toString();
 		jsonObject.get("category").toString();
 
 		// Use the packageName as the collapseKey in the echo packet
-		String collapseKey = "echo:CollapseKey";
+		//String collapseKey = "echo:CollapseKey";
 		@SuppressWarnings("unchecked")
 		Map<String, String> payload = (Map<String, String>) jsonObject.get("data");
 
-		String action = payload.get("ACTION");
-
-		if ("ECHO".equals(action)) {
-
+		String action = payload.get("Type");
+		System.out.println("Action is: " + action);
+		String userMessage = payload.get("GCM_msg");
+		System.out.println("Message is: " + userMessage);
+		if ("msg".equals(action)) {
 			String clientMessage = payload.get("CLIENT_MESSAGE");
 			payload.put(MESSAGE_KEY, "ECHO: " + clientMessage);
-
-			// Send an ECHO response back
+			
+			String type = payload.get("Type");
+			String userMessage1 = payload.get("GCM_msg");
+			System.out.println("Message is: " + userMessage1);
+			String time = payload.get("GCM_time");
+			String mobileNumTo = payload.get("GCM_contactId");
+			RegIdManager db = new RegIdManager();
+			
+			try{
+				Set<String> regIdSet = db.readFromFile(mobileNumTo);
+				String toDeviceRegId = (String) (regIdSet.toArray())[0];
+				sendMessage(toDeviceRegId, GOOGLE_SERVER_KEY, userMessage, mobileNumTo, type, time);
+			}catch(Exception ioe){
+				ioe.printStackTrace();
+			}
+			/*// Send an ECHO response back
 			String echo = createJsonMessage(from, getRandomMessageId(),
 					payload, collapseKey, null, false);
-			send(echo);
-		} else if ("REGISTER".equals(action)) {
-			try {
-				//RegIdManager.writeToFile(from, from);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			send(echo);*/
+		} else if ("contact".equals(action)) {
+			
+		} else if ("Feed".equals(action)){
+			
 		}
 
 	}
+
 
 	/**
 	 * Handles an ACK.
@@ -345,6 +348,7 @@ public class SmackClient {
 		@Override
 		public void processPacket(Stanza packet) throws NotConnectedException {
 			// TODO Auto-generated method stub
+			System.out.println("chicken");
 			logger.log(Level.INFO, "Received: " + packet.toXML());
             Message incomingMessage = (Message) packet;
             GcmPacketExtension gcmPacket =
@@ -361,6 +365,7 @@ public class SmackClient {
 
                 if (messageType == null) {
                     // Normal upstream data message
+                	System.out.println("Processing message");
                 	handleIncomingDataMessage(jsonObject);
 
                     // Send ACK to CCS
@@ -369,10 +374,12 @@ public class SmackClient {
                     String ack = createJsonAck(from, messageId);
                     send(ack);
                 } else if ("ack".equals(messageType.toString())) {
+                	System.out.println("Processing ACK");
                       // Process Ack
                       handleAckReceipt(jsonObject);
                 } else if ("nack".equals(messageType.toString())) {
                       // Process Nack
+                	System.out.println("Processing NACK");
                       handleNackReceipt(jsonObject);
                 } else {
                       logger.log(Level.WARNING,
@@ -384,8 +391,9 @@ public class SmackClient {
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Failed to process packet", e);
             }
-        
+            System.out.println("All done");
 		}
+		
 		//Listener class for stanza
 	}
 	
@@ -398,10 +406,12 @@ public class SmackClient {
 				return true;
 			else 
 			{
-				if(arg0.getTo()!= null)
-					if(arg0.getTo().startsWith(YOUR_PROJECT_ID) )
+				if(arg0.getTo()!= null){
+					if(arg0.getTo().contains(YOUR_PROJECT_ID) ){
+						System.out.println(arg0.getTo());
 						return true;
-			
+					}
+				}
 			}
 			
 			return false;
@@ -410,6 +420,7 @@ public class SmackClient {
 		
 		//Listener class for stanza
 	}
+
 }
 
 

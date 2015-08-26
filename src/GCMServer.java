@@ -9,6 +9,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.XMPPException;
+
 /**
  * Servlet implementation class GCMServer
  */
@@ -25,7 +28,21 @@ public class GCMServer extends HttpServlet {
 		String page;
 		
        
-    /**
+    @Override
+		public void init() throws ServletException {
+			// TODO Auto-generated method stub
+			super.init();
+			SmackClient ccsClient = new SmackClient();
+				try {
+					ccsClient.connect("f", GOOGLE_SERVER_KEY);
+				} catch (XMPPException | SmackException | IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			
+		}
+
+	/**
      * @see HttpServlet#HttpServlet()
      */
     public GCMServer() {
@@ -62,8 +79,14 @@ public class GCMServer extends HttpServlet {
 					System.out.println("Registered: " + mobile);
 					out.println("Registered: " + mobile + "<BR>");
 					request.setAttribute("pushStatus", "Registered.");
+				}else if(request.getParameter("Type").equals("Feed")){
+					String feed = request.getParameter("GCM_Feed");
+					String text = request.getParameter("msg");
+					out.println(feed);
+					System.out.println(feed);
+					System.out.println(text);
 				}
-				else if(request.getParameter("Type").equals("msg")){
+				/*else if(request.getParameter("Type").equals("msg")){
 					String type = request.getParameter("Type");
 					String userMessage = request.getParameter("GCM_msg");
 					String time = request.getParameter("GCM_time");
@@ -73,20 +96,14 @@ public class GCMServer extends HttpServlet {
 					String toDeviceRegId = (String) (regIdSet.toArray())[0];
 					System.out.println("SENT " + userMessage + " TO " + toDeviceRegId);
 					out.println("SENT " + userMessage + " TO " + toDeviceRegId+ "<BR>");
-					SmackClient.sendMessage(toDeviceRegId, GOOGLE_SERVER_KEY, userMessage, contactId, type, time);
+					sendMessage(toDeviceRegId, GOOGLE_SERVER_KEY, userMessage, contactId, type, time);
 					request.setAttribute("pushStatus", "Message Sent.");
 					page = "/chat_server.jsp";
 				}
 				else if(request.getParameter("Type").equals("contact")){
 					String type = request.getParameter("Type");
 					String regNo = request.getParameter("RegNo");
-				}else if(request.getParameter("Type").equals("Feed")){
-					String feed = request.getParameter("GCM_Feed");
-					String text = request.getParameter("msg");
-					out.println(feed);
-					System.out.println(feed);
-					System.out.println(text);
-				}
+				}*/
 				if(db != null){db.dbShutdown();}
 			} catch (Exception ioe) {
 				request.setAttribute("pushStatus","RegId required: " + ioe.toString());
