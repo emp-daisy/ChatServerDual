@@ -170,7 +170,7 @@ public class SmackClient {
 		Boolean delayWhileIdle = true;
 		send(createJsonMessage(toDeviceRegId, messageId, payload,
 				collapseKey, timeToLive, delayWhileIdle));
-		System.out.println("Message: '" + message + "' has been sent");
+		System.out.println("Message: '" + message + "' has been sent to " + toDeviceRegId);
 	}
 	
 	public void sendContacts(String toDeviceRegId, final String GOOGLE_SERVER_KEY , ArrayList<String> message) throws SmackException, IOException, ClassNotFoundException {
@@ -311,6 +311,7 @@ public class SmackClient {
 			System.out.println("Message is: " + userMessage);
 			String time = payload.get("GCM_time");
 			String mobileNumTo = payload.get("GCM_contactId");
+			System.out.println("Contact is: " + mobileNumTo);
 			RegIdManager db = new RegIdManager();
 			
 			try{
