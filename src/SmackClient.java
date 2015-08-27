@@ -72,13 +72,7 @@ public class SmackClient {
 	}
 	
 	public void connect(String senderId, String apiKey) throws XMPPException, SmackException, IOException{
-		/*config = (XMPPTCPConnectionConfiguration) new ConnectionConfiguration(GCM_SERVER, GCM_PORT);
-		config.setSecurityMode(SecurityMode.enabled);
-		config.setReconnectionAllowed(true);
-		config.setRosterLoadedAtLogin(false);
-		config.setSendPresence(false);
-		config.setSocketFactory(SSLSocketFactory.getDefault());*/
-		
+	
 		XMPPTCPConnectionConfiguration config =
     			XMPPTCPConnectionConfiguration.builder()
     			.setServiceName(GCM_SERVER)
@@ -140,14 +134,12 @@ public class SmackClient {
 			}
 
 		});
-		
+
 		connection.login(YOUR_PROJECT_ID + "@gcm.googleapis.com" , apiKey);
 		
-		//connection.addStanzaAcknowledgedListener(new StanzaListenTool());
 		FilterStanza filter = new FilterStanza();
 		StanzaListenTool stanza = new StanzaListenTool();
 		connection.addAsyncStanzaListener(stanza, filter);
-		//connection.login(senderId, apiKey);
 	}
 	
 	public void sendMessage(String toDeviceRegId, final String GOOGLE_SERVER_KEY , String message, String contactId, String type, String time) throws SmackException, IOException, ClassNotFoundException {
@@ -293,12 +285,9 @@ public class SmackClient {
 	 */
 	public void handleIncomingDataMessage(Map<String, Object> jsonObject) throws NotConnectedException {
 		
-		
-		//String from = jsonObject.get("from").toString();
 		jsonObject.get("category").toString();
 
 		// Use the packageName as the collapseKey in the echo packet
-		//String collapseKey = "echo:CollapseKey";
 		@SuppressWarnings("unchecked")
 		Map<String, String> payload = (Map<String, String>) jsonObject.get("data");
 
@@ -320,10 +309,6 @@ public class SmackClient {
 			}catch(Exception ioe){
 				ioe.printStackTrace();
 			}
-			/*// Send an ECHO response back
-			String echo = createJsonMessage(from, getRandomMessageId(),
-					payload, collapseKey, null, false);
-			send(echo);*/
 		} else if ("Contacts".equals(action)) {
 			String list = payload.get("List");
 			Gson gson = new Gson();
@@ -337,6 +322,7 @@ public class SmackClient {
 					regIdSet = db.readFromFile(x);
 					if(!regIdSet.isEmpty()){
 						String numb = (String) (regIdSet.toArray())[0];
+						System.out.println(numb);
 						if(numb != null)
 							sendContacts.add(x);
 					}

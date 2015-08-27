@@ -10,7 +10,8 @@ public class RegIdManager {
 	static Connection con;
 	
 	public RegIdManager(){
-		String p = new File("src/db_script.script").getAbsolutePath();
+		dbConnect();
+		/*String p = new File("src/db_script.script").getAbsolutePath();
 		String connpath = p.substring(0,p.lastIndexOf(".")).replaceAll("/", "\\\\");
 
 		try {
@@ -23,7 +24,7 @@ public class RegIdManager {
         } catch (Exception e) {
             System.out.println("Exception: " + e);
         }
-	}
+*/	}
 	
 	public void writeToFile(String pNo, String regId){
 
@@ -63,6 +64,25 @@ public class RegIdManager {
 		}
  	
 
+		/**	
+	 * creating database connection
+	 **/
+	protected static void dbConnect(){
+		String p = new File("src/db_script.script").getAbsolutePath();
+		String connpath = p.substring(0,p.lastIndexOf(".")).replaceAll("/", "\\\\");
+
+		try {
+            Class.forName("org.hsqldb.jdbcDriver");
+            System.out.println("loaded class");
+            con = DriverManager.getConnection("jdbc:hsqldb:file:"+connpath, "sa", "");
+            System.out.println("created con");
+		}catch(ClassNotFoundException a){
+			System.out.println("Exception: " + a);
+        } catch (Exception e) {
+            System.out.println("Exception: " + e);
+        }
+	}
+
 	/**	
 	 * End database connection
 	 **/
@@ -80,17 +100,5 @@ public class RegIdManager {
 		}
 	}
 	
-	/**	
-	 * creating database connection
-	 **/
-	protected static void dbConnect(){
-		try {
-            Class.forName("org.hsqldb.jdbc.JDBCDriver");
-            System.out.println("loaded class");
-            con = DriverManager.getConnection("jdbc:hsqldb:C:\\Users\\tunde_000\\Documents\\myGit\\ChatServerDual\\src\\db_script", "sa", "");
-            System.out.println("created con");
-        } catch (Exception e) {
-            System.out.println("Exception: " + e);
-        }
-	}
+
 }
