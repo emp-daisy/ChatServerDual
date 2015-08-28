@@ -11,22 +11,9 @@ public class RegIdManager {
 	
 	public RegIdManager(){
 		dbConnect();
-		/*String p = new File("src/db_script.script").getAbsolutePath();
-		String connpath = p.substring(0,p.lastIndexOf(".")).replaceAll("/", "\\\\");
-
-		try {
-            Class.forName("org.hsqldb.jdbcDriver");
-            System.out.println("loaded class");
-            con = DriverManager.getConnection("jdbc:hsqldb:file:"+connpath, "sa", "");
-            System.out.println("created con");
-		}catch(ClassNotFoundException a){
-			System.out.println("Exception: " + a);
-        } catch (Exception e) {
-            System.out.println("Exception: " + e);
-        }
-*/	}
+	}
 	
-	public void writeToFile(String pNo, String regId){
+	public synchronized void writeToFile(String pNo, String regId){
 
         PreparedStatement ps;
 		try {
@@ -89,14 +76,14 @@ public class RegIdManager {
 	public void dbShutdown(){
 		Statement st;
 		try {
+			System.out.println("SHUTTING DOWN...");
 			st = con.createStatement();
 			st.execute("SHUTDOWN");
-			System.out.println("SHUTTING DOWN");
-			con.close();
+			st.close();
 		} catch (SQLException e) {
-            System.out.println("Exception: " + e);
+            System.out.println("SQL_Exception: " + e);
 		} catch(NullPointerException a){
-			System.out.println("Exception: " + a);
+			System.out.println("NULL_Exception: " + a);
 		}
 	}
 	

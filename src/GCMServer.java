@@ -28,7 +28,7 @@ public class GCMServer extends HttpServlet {
 		
        
     @Override
-		public void init() throws ServletException {
+	public void init() throws ServletException {
 			// TODO Auto-generated method stub
 			super.init();
 			SmackClient ccsClient = new SmackClient();
@@ -83,6 +83,7 @@ public class GCMServer extends HttpServlet {
 				}
 			} catch (Exception ioe) {
 				out.println("ERROR");
+				response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED);
 				request.setAttribute("pushStatus","RegId required: " + ioe.toString());
 			}finally{
 				if(db != null){db.dbShutdown();}
