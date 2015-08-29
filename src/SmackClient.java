@@ -178,7 +178,7 @@ public class SmackClient {
 		Boolean delayWhileIdle = true;
 		send(createJsonMessage(toDeviceRegId, messageId, payload,
 				collapseKey, timeToLive, delayWhileIdle));
-		System.out.println(message);
+		System.out.println("App Contacts: " + message);
 		System.out.println("Contacts have been sent");
 	}
 	
@@ -335,8 +335,9 @@ public class SmackClient {
 				}
 			}
 			db.dbShutdown();
-			String goingTo = payload.get("from");
 			try {
+				String goingTo =  payload.get("Phone");
+				System.out.println("PHONE:  " + goingTo);
 				sendContacts(goingTo, GOOGLE_SERVER_KEY, sendContacts);
 			} catch (ClassNotFoundException | SmackException | IOException e) {
 				// TODO Auto-generated catch block

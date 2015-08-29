@@ -91,7 +91,7 @@ public class GCMServer extends HttpServlet {
 				out.close();
 			}
 	}
-
+	
 	@Override
 	public void destroy() {
 		// TODO Auto-generated method stub
