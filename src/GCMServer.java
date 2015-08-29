@@ -83,7 +83,7 @@ public class GCMServer extends HttpServlet {
 				}
 			} catch (Exception ioe) {
 				out.println("ERROR");
-				response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED);
+				out.println("pushStatus: RegId required: " + ioe.toString());
 				request.setAttribute("pushStatus","RegId required: " + ioe.toString());
 			}finally{
 				if(db != null){db.dbShutdown();}

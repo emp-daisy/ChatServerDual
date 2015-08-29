@@ -142,7 +142,7 @@ public class SmackClient {
 		connection.addAsyncStanzaListener(stanza, filter);
 	}
 	
-	public void sendMessage(String toDeviceRegId, final String GOOGLE_SERVER_KEY , String message, String contactId, String type, String time) throws SmackException, IOException, ClassNotFoundException {
+	public void sendMessage(String toDeviceRegId, final String GOOGLE_SERVER_KEY , String message, String contactId, String sender, String type, String time) throws SmackException, IOException, ClassNotFoundException {
 		
 		if(contactId == "")
 			contactId = "07944447710";
@@ -157,11 +157,11 @@ public class SmackClient {
 		payload.put("Type", type);
 		payload.put("GCM_contactId", contactId);
 		payload.put("GCM_time", time);
+		payload.put("GCM_sender", sender);
 		String collapseKey = "sample";
 		Long timeToLive = 10000L;
 		Boolean delayWhileIdle = true;
-		send(createJsonMessage(toDeviceRegId, messageId, payload,
-				collapseKey, timeToLive, delayWhileIdle));
+		send(createJsonMessage(toDeviceRegId, messageId, payload, collapseKey, timeToLive, delayWhileIdle));
 		System.out.println("Message: '" + message + "' has been sent to " + toDeviceRegId);
 	}
 	
@@ -178,6 +178,7 @@ public class SmackClient {
 		Boolean delayWhileIdle = true;
 		send(createJsonMessage(toDeviceRegId, messageId, payload,
 				collapseKey, timeToLive, delayWhileIdle));
+		System.out.println(message);
 		System.out.println("Contacts have been sent");
 	}
 	
@@ -297,16 +298,18 @@ public class SmackClient {
 		if ("msg".equals(action)) {
 			String type = payload.get("Type");
 			String userMessage = payload.get("GCM_msg");
-			System.out.println("Message is: " + userMessage);
 			String time = payload.get("GCM_time");
 			String mobileNumTo = payload.get("GCM_contactId");
+			String mobileNumFrom = payload.get("GCM_sender");
+			System.out.println("Message is: " + userMessage);
 			System.out.println("Contact is: " + mobileNumTo);
+			System.out.println("Sender is: " + mobileNumFrom);
 			RegIdManager db = new RegIdManager();
 			
 			try{
 				Set<String> regIdSet = db.readFromFile(mobileNumTo);
 				String toDeviceRegId = (String) (regIdSet.toArray())[0];
-				sendMessage(toDeviceRegId, GOOGLE_SERVER_KEY, userMessage, mobileNumTo, type, time);
+				sendMessage(toDeviceRegId, GOOGLE_SERVER_KEY, userMessage, mobileNumTo, mobileNumFrom, type, time);
 			}catch(Exception ioe){
 				ioe.printStackTrace();
 			}
@@ -315,7 +318,7 @@ public class SmackClient {
 			Gson gson = new Gson();
 			TypeToken<List<String>> token = new TypeToken<List<String>>() {};
 			List<String> phoneContacts = gson.fromJson(list, token.getType());
-			ArrayList<String> sendContacts = new ArrayList();
+			ArrayList<String> sendContacts = new ArrayList<>();
 			RegIdManager db = new RegIdManager();
 			for(String x : phoneContacts){
 				Set<String> regIdSet;
@@ -323,7 +326,6 @@ public class SmackClient {
 					regIdSet = db.readFromFile(x);
 					if(!regIdSet.isEmpty()){
 						String numb = (String) (regIdSet.toArray())[0];
-						System.out.println(numb);
 						if(numb != null)
 							sendContacts.add(x);
 					}
