@@ -33,6 +33,11 @@ import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 import org.xmlpull.v1.XmlPullParser;
 
+
+
+/*import com.google.android.gcm.server.Message;*/
+import com.google.android.gcm.server.MulticastResult;
+import com.google.android.gcm.server.Sender;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -180,6 +185,16 @@ public class SmackClient {
 				collapseKey, timeToLive, delayWhileIdle));
 		System.out.println("App Contacts: " + message);
 		System.out.println("Contacts have been sent");
+	}
+	
+	public void sendFeed(ArrayList<String> contactList, String GOOGLE_SERVER_KEY ,String message, String from, String time) throws SmackException, IOException, ClassNotFoundException {
+		Sender sender = new Sender(GOOGLE_SERVER_KEY);
+		com.google.android.gcm.server.Message messageBuilder = new com.google.android.gcm.server.Message.Builder().timeToLive(30)
+				.delayWhileIdle(true)
+				.addData("Type", "Feed")
+				.addData("msg", message)
+				.build();
+		MulticastResult result = sender.send(messageBuilder, contactList, 1);
 	}
 	
 	 //XML Packet Extension
@@ -344,7 +359,19 @@ public class SmackClient {
 				e.printStackTrace();
 			}
 		} else if ("Feed".equals(action)){
-			
+			String message = payload.get("msg");
+			String sender = payload.get("GCM_FROM");
+			String time = payload.get("GCM_time");
+			String listContacts = payload.get("Contacts");
+			Gson gson = new Gson();
+			TypeToken<List<String>> token = new TypeToken<List<String>>() {};
+			ArrayList<String> phoneContacts = gson.fromJson(listContacts, token.getType());
+			try {
+				sendFeed(phoneContacts, GOOGLE_SERVER_KEY, message, sender, time);
+			} catch (ClassNotFoundException | SmackException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 	}
