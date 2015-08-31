@@ -187,14 +187,39 @@ public class SmackClient {
 		System.out.println("Contacts have been sent");
 	}
 	
-	public void sendFeed(ArrayList<String> contactList, String GOOGLE_SERVER_KEY ,String message, String from, String time) throws SmackException, IOException, ClassNotFoundException {
+	public void sendMainContacts(String toDeviceRegId, final String GOOGLE_SERVER_KEY , ArrayList<String> message) throws SmackException, IOException, ClassNotFoundException {
+		
+		String messageId = getRandomMessageId();
+		Map<String, String> payload = new HashMap<String, String>();
+		Gson gson = new Gson();
+		String jsonPhoneList = gson.toJson(message);
+		payload.put("Type", "MainContact");
+		payload.put("MainContact", jsonPhoneList);
+		String collapseKey = "sample";
+		Long timeToLive = 10000L;
+		Boolean delayWhileIdle = true;
+		send(createJsonMessage(toDeviceRegId, messageId, payload,
+				collapseKey, timeToLive, delayWhileIdle));
+		System.out.println("App Contacts: " + message);
+		System.out.println("Contacts have been sent");
+	}
+	
+	public void sendFeed(ArrayList<String> contactList,String message, String from, String time) throws SmackException, IOException, ClassNotFoundException {
 		Sender sender = new Sender(GOOGLE_SERVER_KEY);
 		com.google.android.gcm.server.Message messageBuilder = new com.google.android.gcm.server.Message.Builder().timeToLive(30)
 				.delayWhileIdle(true)
 				.addData("Type", "Feed")
 				.addData("msg", message)
+				.addData("GCM_FROM", from)
+				.addData("GCM_time", time)
 				.build();
+		
+		System.out.println("feed msg: " + message);
+		System.out.println("feed from: " + from);
+		for(String x : contactList)
+			System.out.println(x);
 		MulticastResult result = sender.send(messageBuilder, contactList, 1);
+		System.out.println(result);
 	}
 	
 	 //XML Packet Extension
@@ -351,9 +376,15 @@ public class SmackClient {
 			}
 			db.dbShutdown();
 			try {
+				String main = payload.get("Main");
 				String goingTo =  payload.get("Phone");
 				System.out.println("PHONE:  " + goingTo);
-				sendContacts(goingTo, GOOGLE_SERVER_KEY, sendContacts);
+				if(main.equals("y")){
+					sendMainContacts(goingTo, GOOGLE_SERVER_KEY, sendContacts);
+				}else{
+					sendContacts(goingTo, GOOGLE_SERVER_KEY, sendContacts);
+				}
+				//sendContacts(goingTo, GOOGLE_SERVER_KEY, sendContacts);
 			} catch (ClassNotFoundException | SmackException | IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -366,8 +397,21 @@ public class SmackClient {
 			Gson gson = new Gson();
 			TypeToken<List<String>> token = new TypeToken<List<String>>() {};
 			ArrayList<String> phoneContacts = gson.fromJson(listContacts, token.getType());
+			RegIdManager db = new RegIdManager();
+			ArrayList<String> list = new ArrayList<String>();
+			for(String x : phoneContacts){
+				Set<String> regIdSet;
+				try {
+					regIdSet = db.readFromFile(x);
+					list.add((String)regIdSet.toArray()[0]);
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			db.dbShutdown();
 			try {
-				sendFeed(phoneContacts, GOOGLE_SERVER_KEY, message, sender, time);
+				sendFeed(list, message, sender, time);
 			} catch (ClassNotFoundException | SmackException | IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
