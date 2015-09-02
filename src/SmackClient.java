@@ -187,23 +187,6 @@ public class SmackClient {
 		System.out.println("Contacts have been sent");
 	}
 	
-	public void sendMainContacts(String toDeviceRegId, final String GOOGLE_SERVER_KEY , ArrayList<String> message) throws SmackException, IOException, ClassNotFoundException {
-		
-		String messageId = getRandomMessageId();
-		Map<String, String> payload = new HashMap<String, String>();
-		Gson gson = new Gson();
-		String jsonPhoneList = gson.toJson(message);
-		payload.put("Type", "MainContact");
-		payload.put("MainContact", jsonPhoneList);
-		String collapseKey = "sample";
-		Long timeToLive = 10000L;
-		Boolean delayWhileIdle = true;
-		send(createJsonMessage(toDeviceRegId, messageId, payload,
-				collapseKey, timeToLive, delayWhileIdle));
-		System.out.println("App Contacts: " + message);
-		System.out.println("Contacts have been sent");
-	}
-	
 	public void sendFeed(ArrayList<String> contactList,String message, String from, String time) throws SmackException, IOException, ClassNotFoundException {
 		Sender sender = new Sender(GOOGLE_SERVER_KEY);
 		com.google.android.gcm.server.Message messageBuilder = new com.google.android.gcm.server.Message.Builder().timeToLive(30)
@@ -376,14 +359,10 @@ public class SmackClient {
 			}
 			db.dbShutdown();
 			try {
-				String main = payload.get("Main");
 				String goingTo =  payload.get("Phone");
 				System.out.println("PHONE:  " + goingTo);
-				if(main.equals("y")){
-					sendMainContacts(goingTo, GOOGLE_SERVER_KEY, sendContacts);
-				}else{
-					sendContacts(goingTo, GOOGLE_SERVER_KEY, sendContacts);
-				}
+				sendContacts(goingTo, GOOGLE_SERVER_KEY, sendContacts);
+				
 				//sendContacts(goingTo, GOOGLE_SERVER_KEY, sendContacts);
 			} catch (ClassNotFoundException | SmackException | IOException e) {
 				// TODO Auto-generated catch block
