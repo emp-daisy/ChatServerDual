@@ -35,6 +35,7 @@ import org.xmlpull.v1.XmlPullParser;
 
 
 
+
 /*import com.google.android.gcm.server.Message;*/
 import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Sender;
@@ -176,7 +177,7 @@ public class SmackClient {
 		Map<String, String> payload = new HashMap<String, String>();
 		Gson gson = new Gson();
 		String jsonPhoneList = gson.toJson(message);
-		payload.put("Type", "Contacts");
+		payload.put("Type", "Contact");
 		payload.put("Contacts", jsonPhoneList);
 		String collapseKey = "sample";
 		Long timeToLive = 10000L;
@@ -201,11 +202,44 @@ public class SmackClient {
 		System.out.println("feed from: " + from);
 		for(String x : contactList)
 			System.out.println(x);
+		if(!contactList.isEmpty()){
+			MulticastResult result = sender.send(messageBuilder, contactList, 1);
+			System.out.println(result);
+		}
+	}
+	
+	public void sendContactsPhoto(String toDeviceRegId, final String GOOGLE_SERVER_KEY , ArrayList<Map<String, byte[]>> sendPhoto) throws SmackException, IOException, ClassNotFoundException {
+		String messageId = getRandomMessageId();
+		Map<String, String> payload = new HashMap<String, String>();
+		Gson gson = new Gson();
+		String jsonPhoneList = gson.toJson(sendPhoto);
+		payload.put("Type", "ContactsPhoto");
+		payload.put("ListPhoto", jsonPhoneList);
+		String collapseKey = "sample";
+		Long timeToLive = 10000L;
+		Boolean delayWhileIdle = true;
+		send(createJsonMessage(toDeviceRegId, messageId, payload,
+				collapseKey, timeToLive, delayWhileIdle));
+		System.out.println("Contacts Photos have been sent");
+	}
+	
+	public void sendPhoto(ArrayList<String> contactList,String message, String from) throws SmackException, IOException, ClassNotFoundException {
+		Sender sender = new Sender(GOOGLE_SERVER_KEY);
+		com.google.android.gcm.server.Message messageBuilder = new com.google.android.gcm.server.Message.Builder().timeToLive(30)
+				.delayWhileIdle(true)
+				.addData("Type", "Photo")
+				.addData("msg", message)
+				.addData("GCM_FROM", from)
+				.build();
+
+		System.out.println("Image from: " + from);
+		for(String x : contactList)
+			System.out.println(x);
 		MulticastResult result = sender.send(messageBuilder, contactList, 1);
 		System.out.println(result);
 	}
 	
-	 //XML Packet Extension
+	//XML Packet Extension
 	private static final class GcmPacketExtension extends DefaultExtensionElement{
 
 		String json;
@@ -317,6 +351,7 @@ public class SmackClient {
 
 		String action = payload.get("Type");
 		System.out.println("Action is: " + action);
+		RegIdManager db = new RegIdManager();
 		
 		if ("msg".equals(action)) {
 			String type = payload.get("Type");
@@ -327,7 +362,6 @@ public class SmackClient {
 			System.out.println("Message is: " + userMessage);
 			System.out.println("Contact is: " + mobileNumTo);
 			System.out.println("Sender is: " + mobileNumFrom);
-			RegIdManager db = new RegIdManager();
 			
 			try{
 				Set<String> regIdSet = db.readFromFile(mobileNumTo);
@@ -341,11 +375,12 @@ public class SmackClient {
 			Gson gson = new Gson();
 			TypeToken<List<String>> token = new TypeToken<List<String>>() {};
 			List<String> phoneContacts = gson.fromJson(list, token.getType());
+			System.out.println("PHONE CONTACT: " + phoneContacts);
 			ArrayList<String> sendContacts = new ArrayList<>();
-			RegIdManager db = new RegIdManager();
 			for(String x : phoneContacts){
 				Set<String> regIdSet;
 				try {
+					x = x.replaceAll("\\s", "");
 					regIdSet = db.readFromFile(x);
 					if(!regIdSet.isEmpty()){
 						String numb = (String) (regIdSet.toArray())[0];
@@ -357,13 +392,10 @@ public class SmackClient {
 					e.printStackTrace();
 				}
 			}
-			db.dbShutdown();
 			try {
 				String goingTo =  payload.get("Phone");
 				System.out.println("PHONE:  " + goingTo);
 				sendContacts(goingTo, GOOGLE_SERVER_KEY, sendContacts);
-				
-				//sendContacts(goingTo, GOOGLE_SERVER_KEY, sendContacts);
 			} catch (ClassNotFoundException | SmackException | IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -376,8 +408,8 @@ public class SmackClient {
 			Gson gson = new Gson();
 			TypeToken<List<String>> token = new TypeToken<List<String>>() {};
 			ArrayList<String> phoneContacts = gson.fromJson(listContacts, token.getType());
-			RegIdManager db = new RegIdManager();
 			ArrayList<String> list = new ArrayList<String>();
+			System.out.println("FEED LIST: " + phoneContacts);
 			for(String x : phoneContacts){
 				Set<String> regIdSet;
 				try {
@@ -388,15 +420,56 @@ public class SmackClient {
 					e.printStackTrace();
 				}
 			}
-			db.dbShutdown();
 			try {
 				sendFeed(list, message, sender, time);
 			} catch (ClassNotFoundException | SmackException | IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}else if("Photo".equals(action)){
+			String image =  payload.get("ProfilePic");
+			String contactList = payload.get("ContactList");
+			Gson gson = new Gson();
+			TypeToken<List<String>> token = new TypeToken<List<String>>() {};
+			ArrayList<String> phoneContacts = gson.fromJson(contactList, token.getType());
+			System.out.println("Image STRING: " + image);
+			byte[] imageByte = image.getBytes();
+			System.out.println("Image BYTES: " + imageByte);
+			String user = payload.get("UserOwner");
+			db.saveImage(user, imageByte);//Save image to database
+			try{
+				sendPhoto(phoneContacts, image, user);
+			}catch(ClassNotFoundException | SmackException | IOException e){
+				// TODO Auto-generated catch block
+				e.printStackTrace();	
+			}
+		}else if("GetPhoto".equals(action)){
+			String list = payload.get("List");
+			Gson gson = new Gson();
+			TypeToken<List<String>> token = new TypeToken<List<String>>() {};
+			List<String> phoneContacts = gson.fromJson(list, token.getType());
+			ArrayList<Map<String, byte[]>> sendPhoto = new ArrayList<>();
+			for(String x : phoneContacts){
+				Map<String, byte[]> mapPhoto;
+				try {
+					mapPhoto = db.getImage(x);
+					if(!mapPhoto.isEmpty()){
+						sendPhoto.add(mapPhoto);
+					}
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			try {
+				String goingTo =  payload.get("Phone");
+				sendContactsPhoto(goingTo, GOOGLE_SERVER_KEY, sendPhoto);
+			} catch (ClassNotFoundException | SmackException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-
+		db.dbShutdown();
 	}
 
 

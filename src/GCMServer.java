@@ -65,21 +65,14 @@ public class GCMServer extends HttpServlet {
 		PrintWriter out = response.getWriter();
         db = new RegIdManager();
 		
-			try {
-				String regKey = request.getParameter("RegNo");
-				String mobile = request.getParameter("MobileNo");
-				
+			try {				
 				if(request.getParameter("Register") != null){
+					String regKey = request.getParameter("RegNo");
+					String mobile = request.getParameter("MobileNo");
 					db.writeToFile(mobile, regKey);
 					System.out.println("Registered: " + mobile);
 					out.println("REGISTERED");
 					request.setAttribute("pushStatus", "Registered.");
-				}else if(request.getParameter("Type").equals("Feed")){
-					String feed = request.getParameter("GCM_Feed");
-					String text = request.getParameter("msg");
-					out.println(feed);
-					System.out.println(feed);
-					System.out.println(text);
 				}
 			} catch (Exception ioe) {
 				out.println("ERROR");

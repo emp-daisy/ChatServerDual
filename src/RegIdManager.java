@@ -2,7 +2,9 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.sql.*;
 
@@ -34,7 +36,7 @@ public class RegIdManager {
 			e.printStackTrace();
 		}
 	}
-	
+
 
 	public Set<String> readFromFile(String mobi) throws SQLException{
 		Set<String> regIdSet = new HashSet<String>();
@@ -50,8 +52,46 @@ public class RegIdManager {
 		
 		}
  	
+	/**
+	 * Get the profile picture from the database
+	 * @throws SQLException 
+	 * */
+	public Map<String, byte[]> getImage(String pNo) throws SQLException{
+		Map<String, byte[]> photoMap = new HashMap<>();
+		String query = "Select * from chatServer.ProfileTable WHERE UserMobile ='" + pNo + "'";
+		
+        Statement s = con.createStatement();
+        ResultSet rs = s.executeQuery(query);
+        
+        while (rs.next()) {
+			photoMap.put(rs.getString(1), rs.getBytes(2));
+		}
+		return photoMap;
+	}
 
-		/**	
+	/**
+	 * Save the image to database
+	 * */
+	public void saveImage(String pNo, byte[] img){
+		PreparedStatement ps;
+		String sql = "INSERT INTO chatServer.ProfileTable(UserMobile, UserPhoto) VALUES (?,?)";;
+		try {
+
+			if(getImage(pNo) != null | getImage(pNo).size()>0){
+				sql = "UPDATE chatServer.ProfileTable SET UserMobile = ? WHERE UserPhoto=?";
+			}
+			
+			ps = con.prepareStatement(sql);
+			ps.setString(1, pNo);
+			ps.setBytes(2, img);
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**	
 	 * creating database connection
 	 **/
 	protected static void dbConnect(){
