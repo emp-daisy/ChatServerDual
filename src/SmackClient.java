@@ -29,14 +29,11 @@ import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smack.util.StringUtils;
+import org.jivesoftware.smack.util.stringencoder.Base64;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 import org.xmlpull.v1.XmlPullParser;
 
-
-
-
-/*import com.google.android.gcm.server.Message;*/
 import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Sender;
 import com.google.gson.Gson;
@@ -427,18 +424,21 @@ public class SmackClient {
 				e.printStackTrace();
 			}
 		}else if("Photo".equals(action)){
-			String image =  payload.get("ProfilePic");
+			String profileImage =  payload.get("ProfilePic");
 			String contactList = payload.get("ContactList");
+			String user = payload.get("UserOwner");
 			Gson gson = new Gson();
 			TypeToken<List<String>> token = new TypeToken<List<String>>() {};
 			ArrayList<String> phoneContacts = gson.fromJson(contactList, token.getType());
-			System.out.println("Image STRING: " + image);
-			byte[] imageByte = image.getBytes();
+			System.out.println("Image STRING: " + profileImage);
+			System.out.println("Image CONTACT: " + contactList);
+			System.out.println("Image USER: " + user);
+			byte[] imageByte = Base64.decode(profileImage);
+			//byte[] imageByte = image.getBytes();
 			System.out.println("Image BYTES: " + imageByte);
-			String user = payload.get("UserOwner");
 			db.saveImage(user, imageByte);//Save image to database
 			try{
-				sendPhoto(phoneContacts, image, user);
+				sendPhoto(phoneContacts, profileImage, user);
 			}catch(ClassNotFoundException | SmackException | IOException e){
 				// TODO Auto-generated catch block
 				e.printStackTrace();	
@@ -506,7 +506,7 @@ public class SmackClient {
 		@Override
 		public void processPacket(Stanza packet) throws NotConnectedException {
 			// TODO Auto-generated method stub
-			System.out.println("chicken");
+			System.out.println("Process packet...");
 			logger.log(Level.INFO, "Received: " + packet.toXML());
             Message incomingMessage = (Message) packet;
             GcmPacketExtension gcmPacket =
