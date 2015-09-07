@@ -220,6 +220,19 @@ public class SmackClient {
 		System.out.println("Contacts Photos have been sent");
 	}
 	
+	public void sendDeleteInfo(String number, final String GOOGLE_SERVER_KEY , String confirm) throws SmackException, IOException, ClassNotFoundException {
+		String messageId = getRandomMessageId();
+		Map<String, String> payload = new HashMap<String, String>();
+		payload.put("Type", "Deactivate");
+		payload.put("Confirm", confirm);
+		String collapseKey = "sample";
+		Long timeToLive = 10000L;
+		Boolean delayWhileIdle = true;
+		send(createJsonMessage(number, messageId, payload,
+				collapseKey, timeToLive, delayWhileIdle));
+		System.out.println("Delete Info Sent to number " + number);
+	}
+	
 	public void sendPhoto(ArrayList<String> contactList,String message, String from) throws SmackException, IOException, ClassNotFoundException {
 		Sender sender = new Sender(GOOGLE_SERVER_KEY);
 		com.google.android.gcm.server.Message messageBuilder = new com.google.android.gcm.server.Message.Builder().timeToLive(30)
@@ -423,7 +436,7 @@ public class SmackClient {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}else if("Photo".equals(action)){
+		}else if("ProfilePhoto".equals(action)){
 			String profileImage =  payload.get("ProfilePic");
 			String contactList = payload.get("ContactList");
 			String user = payload.get("UserOwner");
@@ -468,6 +481,20 @@ public class SmackClient {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}else if("Deactivate".equals(action)){
+			String number = payload.get("number");
+			String confirm = "";
+			if(db.deleteContact(number))
+				confirm = "y";
+			else 
+				confirm = "n";
+			try {
+				sendDeleteInfo(number, GOOGLE_SERVER_KEY, confirm);
+			} catch (ClassNotFoundException | SmackException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		}
 		db.dbShutdown();
 	}

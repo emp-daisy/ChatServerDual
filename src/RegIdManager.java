@@ -68,13 +68,26 @@ public class RegIdManager {
 		}
 		return photoMap;
 	}
+	
+	public boolean deleteContact(String mobile){
+		PreparedStatement ps;
+		try {
+			ps = con.prepareStatement("DELETE FROM chatServer.RegTable WHERE Mobile = " + mobile);
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}	
+		return true;
+	}
 
 	/**
 	 * Save the image to database
 	 * */
 	public void saveImage(String pNo, byte[] img){
 		PreparedStatement ps;
-		String sql = "INSERT INTO chatServer.ProfileTable(UserMobile, UserPhoto) VALUES (?,?)";;
+		String sql = "INSERT INTO chatServer.ProfileTable(UserMobile, UserPhoto) VALUES (?,?)";
 		try {
 
 			if(getImage(pNo) != null | getImage(pNo).size()>0){
