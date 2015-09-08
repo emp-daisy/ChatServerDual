@@ -230,7 +230,7 @@ public class SmackClient {
 		Boolean delayWhileIdle = true;
 		send(createJsonMessage(number, messageId, payload,
 				collapseKey, timeToLive, delayWhileIdle));
-		System.out.println("Delete Info Sent to number " + number);
+		System.out.println("Delete Info Sent");
 	}
 	
 	public void sendPhoto(ArrayList<String> contactList,String message, String from) throws SmackException, IOException, ClassNotFoundException {
@@ -484,12 +484,27 @@ public class SmackClient {
 		}else if("Deactivate".equals(action)){
 			String number = payload.get("number");
 			String confirm = "";
+			try{
+				
+			}catch(Exception ioe){
+				ioe.printStackTrace();
+			}
+			Set<String> regIdSet = null;
+			try {
+				regIdSet = db.readFromFile(number);
+			} catch (SQLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			String toDeviceRegId = (String) (regIdSet.toArray())[0];
+			
 			if(db.deleteContact(number))
 				confirm = "y";
 			else 
 				confirm = "n";
 			try {
-				sendDeleteInfo(number, GOOGLE_SERVER_KEY, confirm);
+				
+				sendDeleteInfo(toDeviceRegId, GOOGLE_SERVER_KEY, confirm);
 			} catch (ClassNotFoundException | SmackException | IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
