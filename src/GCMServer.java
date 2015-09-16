@@ -89,6 +89,11 @@ public class GCMServer extends HttpServlet {
 					String profilePic = request.getParameter("ProfilePic");
 					System.out.println("User Owner: " + userOwner);
 					sendProfilePhoto(jsonPhoneList, userOwner, profilePic);			
+				}else if(request.getParameter("Contacts") != null){
+					String theList = request.getParameter("List");
+					String number = request.getParameter("Phone");
+					System.out.println("The host number is: " + number);
+					getContacts(theList, number);
 				}
 			} catch (Exception ioe) {
 				out.println("ERROR");
@@ -160,6 +165,37 @@ public class GCMServer extends HttpServlet {
 		}catch(ClassNotFoundException | SmackException | IOException e){
 			// TODO Auto-generated catch block
 			e.printStackTrace();	
+		}
+	}
+	
+	private void getContacts(String list, String phone){
+		Gson gson = new Gson();
+		TypeToken<List<String>> token = new TypeToken<List<String>>() {};
+		List<String> phoneContacts = gson.fromJson(list, token.getType());
+		System.out.println("PHONE CONTACT: " + phoneContacts);
+		ArrayList<String> sendContacts = new ArrayList<>();
+		for(String x : phoneContacts){
+			Set<String> regIdSet;
+			try {
+				x = x.replaceAll("\\s", "");
+				regIdSet = db.readFromFile(x);
+				if(!regIdSet.isEmpty()){
+					String numb = (String) (regIdSet.toArray())[0];
+					if(numb != null)
+						sendContacts.add(x);
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			try {
+				System.out.println("PHONE:  " + phone);
+				ccsClient.sendContacts(phone, GOOGLE_SERVER_KEY, sendContacts);
+			} catch (ClassNotFoundException | SmackException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	

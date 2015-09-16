@@ -179,6 +179,7 @@ public class SmackClient {
 		String collapseKey = "sample";
 		Long timeToLive = 10000L;
 		Boolean delayWhileIdle = true;
+		System.out.println("About to send contacts");
 		send(createJsonMessage(toDeviceRegId, messageId, payload,
 				collapseKey, timeToLive, delayWhileIdle));
 		System.out.println("App Contacts: " + message);
@@ -381,6 +382,7 @@ public class SmackClient {
 				ioe.printStackTrace();
 			}
 		} else if ("Contacts".equals(action)) {
+			System.out.println("Contacts recieved");
 			String list = payload.get("List");
 			Gson gson = new Gson();
 			TypeToken<List<String>> token = new TypeToken<List<String>>() {};
