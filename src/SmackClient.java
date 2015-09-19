@@ -234,8 +234,11 @@ public class SmackClient {
 		System.out.println("Delete Info Sent");
 	}
 	
-	public void sendPhoto(ArrayList<String> contactList,String message, String from) throws SmackException, IOException, ClassNotFoundException {
+	public void sendPhoto(ArrayList<String> contactList, String from) throws SmackException, IOException, ClassNotFoundException {
 		Sender sender = new Sender(GOOGLE_SERVER_KEY);
+		
+		//ServerIP
+		String message = "http://192.168.1.5:8080/ChatServerDual/GCMServer/WebContent/ProfilePics/" + from + ".jpg";
 		com.google.android.gcm.server.Message messageBuilder = new com.google.android.gcm.server.Message.Builder().timeToLive(30)
 				.delayWhileIdle(true)
 				.addData("Type", "Photo")
@@ -453,7 +456,7 @@ public class SmackClient {
 			System.out.println("Image BYTES: " + imageByte);
 			db.saveImage(user, imageByte);//Save image to database
 			try{
-				sendPhoto(phoneContacts, profileImage, user);
+				sendPhoto(phoneContacts, user);
 			}catch(ClassNotFoundException | SmackException | IOException e){
 				// TODO Auto-generated catch block
 				e.printStackTrace();	

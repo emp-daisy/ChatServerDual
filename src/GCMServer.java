@@ -1,4 +1,7 @@
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
@@ -7,11 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.DatatypeConverter;
 
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
@@ -148,6 +153,7 @@ public class GCMServer extends HttpServlet {
 		ArrayList<String> phoneContacts = gson.fromJson(jsonList, token.getType());
 		byte[] imageByte = Base64.decode(profilePic);
 		db.saveImage(userOwner, imageByte);
+		generatePhoto(userOwner, imageByte);
 		ArrayList<String> list = new ArrayList<String>();
 		for(String x : phoneContacts){
 			Set<String> regIdSet;
@@ -161,7 +167,7 @@ public class GCMServer extends HttpServlet {
 		}
 		
 		try{
-			ccsClient.sendPhoto(list, profilePic, userOwner);
+			ccsClient.sendPhoto(list, userOwner);
 		}catch(ClassNotFoundException | SmackException | IOException e){
 			// TODO Auto-generated catch block
 			e.printStackTrace();	
@@ -197,6 +203,21 @@ public class GCMServer extends HttpServlet {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	private void generatePhoto(String mobile, byte[] img){
+		FileOutputStream fileOuputStream;
+		try {
+			fileOuputStream = new FileOutputStream("WebContent/WEB-INF/ProfilePics/" + mobile + ".jpg");
+			fileOuputStream.write(img);
+			fileOuputStream.close();
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
 	}
 	
 	@Override
