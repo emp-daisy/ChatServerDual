@@ -234,6 +234,19 @@ public class SmackClient {
 		System.out.println("Delete Info Sent");
 	}
 	
+	public void sendTyping(String to, String isTyping) throws NotConnectedException{
+		String messageId = getRandomMessageId();
+		Map<String, String> payload = new HashMap<String, String>();
+		payload.put("Type", "Typing");
+		payload.put("isUserTyping", isTyping);
+		String collapseKey = "sample";
+		Long timeToLive = 10000L;
+		Boolean delayWhileIdle = true;
+		send(createJsonMessage(to, messageId, payload,
+				collapseKey, timeToLive, delayWhileIdle));
+		System.out.println("is Typing Sent");
+	}
+	
 	public void sendPhoto(ArrayList<String> contactList, String from) throws SmackException, IOException, ClassNotFoundException {
 		Sender sender = new Sender(GOOGLE_SERVER_KEY);
 		
@@ -514,6 +527,25 @@ public class SmackClient {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			
+		}else if("Typing".equals(action)){
+			String type = payload.get("isUserTyping");
+			String mobileNumTo = payload.get("GCM_contactId");
+			Set<String> regIdSet;
+			try {
+				regIdSet = db.readFromFile(mobileNumTo);
+				String toDeviceRegId = (String) (regIdSet.toArray())[0];
+				String isit = "";
+				if(type.equals("y"))
+					isit = "y";
+				else
+					isit = "n";
+				sendTyping(toDeviceRegId, isit);
+			} catch (SQLException | NotConnectedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			
 		}
 		db.dbShutdown();
