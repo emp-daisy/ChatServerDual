@@ -105,7 +105,7 @@ public class RegIdManager {
 	}
 	
 	/**	
-	 * creating database connection
+	 * creating database connection with auto shutdown
 	 **/
 	protected static void dbConnect(){
 		String p = new File("src/db_script.script").getAbsolutePath();
@@ -114,7 +114,7 @@ public class RegIdManager {
 		try {
             Class.forName("org.hsqldb.jdbcDriver");
             System.out.println("loaded class");
-            con = DriverManager.getConnection("jdbc:hsqldb:file:"+connpath, "sa", "");
+            con = DriverManager.getConnection("jdbc:hsqldb:file:"+connpath+";shutdown=true", "sa", "");
             System.out.println("created con");
 		}catch(ClassNotFoundException a){
 			System.out.println("Exception: " + a);
