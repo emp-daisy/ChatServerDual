@@ -206,6 +206,19 @@ public class SmackClient {
 		}
 	}
 	
+	public void sendRequest(String toDeviceRegId, final String GOOGLE_SERVER_KEY, String from) throws SmackException, IOException, ClassNotFoundException{
+		String messageId = getRandomMessageId();
+		Map<String, String> payload = new HashMap<String, String>();
+		payload.put("Type", "Request");
+		payload.put("Number", from);
+		String collapseKey = "sample";
+		Long timeToLive = 10000L;
+		Boolean delayWhileIdle = true;
+		send(createJsonMessage(toDeviceRegId, messageId, payload,
+				collapseKey, timeToLive, delayWhileIdle));
+		System.out.println("Reuest Sent");
+	}
+	
 	public void sendContactsPhoto(String toDeviceRegId, final String GOOGLE_SERVER_KEY , ArrayList<Map<String, byte[]>> sendPhoto) throws SmackException, IOException, ClassNotFoundException {
 		String messageId = getRandomMessageId();
 		Map<String, String> payload = new HashMap<String, String>();
@@ -396,6 +409,16 @@ public class SmackClient {
 				sendMessage(toDeviceRegId, GOOGLE_SERVER_KEY, userMessage, mobileNumTo, mobileNumFrom, type, time);
 			}catch(Exception ioe){
 				ioe.printStackTrace();
+			}
+		}else if("Request".equals(action)){
+			String regAdd = payload.get("AddPhone");
+			try {
+				Set<String> regIdSet = db.readFromFile(payload.get("Phone"));
+				String toDeviceRegId = (String) (regIdSet.toArray())[0];
+				sendRequest(toDeviceRegId, GOOGLE_SERVER_KEY, regAdd);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		} else if ("Contacts".equals(action)) {
 			System.out.println("Contacts recieved");
