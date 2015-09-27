@@ -392,186 +392,125 @@ public class SmackClient {
 		String action = payload.get("Type");
 		System.out.println("Action is: " + action);
 		RegIdManager db = new RegIdManager();
-		
-		if ("msg".equals(action)) {
-			String type = payload.get("Type");
-			String userMessage = payload.get("GCM_msg");
-			String time = payload.get("GCM_time");
-			String mobileNumTo = payload.get("GCM_contactId");
-			String mobileNumFrom = payload.get("GCM_sender");
-			System.out.println("Message is: " + userMessage);
-			System.out.println("Contact is: " + mobileNumTo);
-			System.out.println("Sender is: " + mobileNumFrom);
-			
-			try{
-				Set<String> regIdSet = db.readFromFile(mobileNumTo);
-				String toDeviceRegId = (String) (regIdSet.toArray())[0];
-				sendMessage(toDeviceRegId, GOOGLE_SERVER_KEY, userMessage, mobileNumTo, mobileNumFrom, type, time);
-			}catch(Exception ioe){
-				ioe.printStackTrace();
-			}
-		}else if("Request".equals(action)){
-			String regAdd = payload.get("AddPhone");
-			try {
-				Set<String> regIdSet = db.readFromFile(payload.get("Phone"));
-				String toDeviceRegId = (String) (regIdSet.toArray())[0];
-				sendRequest(toDeviceRegId, GOOGLE_SERVER_KEY, regAdd);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} else if ("Contacts".equals(action)) {
-			System.out.println("Contacts recieved");
-			String list = payload.get("List");
-			Gson gson = new Gson();
-			TypeToken<List<String>> token = new TypeToken<List<String>>() {};
-			List<String> phoneContacts = gson.fromJson(list, token.getType());
-			System.out.println("PHONE CONTACT: " + phoneContacts);
-			ArrayList<String> sendContacts = new ArrayList<>();
-			for(String x : phoneContacts){
-				Set<String> regIdSet;
-				try {
-					x = x.replaceAll("\\s", "");
-					regIdSet = db.readFromFile(x);
-					if(!regIdSet.isEmpty()){
-						String numb = (String) (regIdSet.toArray())[0];
-						if(numb != null)
-							sendContacts.add(x);
-					}
-				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			try {
+		switch(action){
+			case "msg":
+				{String type = payload.get("Type");
+				String userMessage = payload.get("GCM_msg");
+				String time = payload.get("GCM_time");
+				String mobileNumTo = payload.get("GCM_contactId");
+				String mobileNumFrom = payload.get("GCM_sender");
+				System.out.println("Message is: " + userMessage + " : Contact is: " + mobileNumTo + " : Sender is: " + mobileNumFrom);
+				try{
+					Set<String> regIdSet = db.readFromFile(mobileNumTo);
+					String toDeviceRegId = (String) (regIdSet.toArray())[0];
+					sendMessage(toDeviceRegId, GOOGLE_SERVER_KEY, userMessage, mobileNumTo, mobileNumFrom, type, time);
+				}catch(Exception ioe){
+					ioe.printStackTrace();
+				}}
+				break;
+			case "Contacts":
+				{String list = payload.get("List");
 				String goingTo =  payload.get("Phone");
-				System.out.println("PHONE:  " + goingTo);
-				sendContacts(goingTo, GOOGLE_SERVER_KEY, sendContacts);
-			} catch (ClassNotFoundException | SmackException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} else if ("Feed".equals(action)){
-			String message = payload.get("msg");
-			String sender = payload.get("GCM_FROM");
-			String time = payload.get("GCM_time");
-			String listContacts = payload.get("Contacts");
-			Gson gson = new Gson();
-			TypeToken<List<String>> token = new TypeToken<List<String>>() {};
-			ArrayList<String> phoneContacts = gson.fromJson(listContacts, token.getType());
-			ArrayList<String> list = new ArrayList<String>();
-			System.out.println("FEED LIST: " + phoneContacts);
-			for(String x : phoneContacts){
-				Set<String> regIdSet;
+				Gson gson = new Gson();
+				TypeToken<List<String>> token = new TypeToken<List<String>>() {};
+				List<String> phoneContacts = gson.fromJson(list, token.getType());
+				ArrayList<String> sendContacts = new ArrayList<>();
 				try {
-					regIdSet = db.readFromFile(x);
-					list.add((String)regIdSet.toArray()[0]);
-				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			try {
-				sendFeed(list, message, sender, time);
-			} catch (ClassNotFoundException | SmackException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}else if("ProfilePhoto".equals(action)){
-			String profileImage =  payload.get("ProfilePic");
-			String contactList = payload.get("ContactList");
-			String user = payload.get("UserOwner");
-			Gson gson = new Gson();
-			TypeToken<List<String>> token = new TypeToken<List<String>>() {};
-			ArrayList<String> phoneContacts = gson.fromJson(contactList, token.getType());
-			System.out.println("Image STRING: " + profileImage);
-			System.out.println("Image CONTACT: " + contactList);
-			System.out.println("Image USER: " + user);
-			byte[] imageByte = Base64.decode(profileImage);
-			//byte[] imageByte = image.getBytes();
-			System.out.println("Image BYTES: " + imageByte);
-			db.saveImage(user, imageByte);//Save image to database
-			try{
-				sendPhoto(phoneContacts, user);
-			}catch(ClassNotFoundException | SmackException | IOException e){
-				// TODO Auto-generated catch block
-				e.printStackTrace();	
-			}
-		}else if("GetPhoto".equals(action)){
-			String list = payload.get("List");
-			Gson gson = new Gson();
-			TypeToken<List<String>> token = new TypeToken<List<String>>() {};
-			List<String> phoneContacts = gson.fromJson(list, token.getType());
-			ArrayList<Map<String, byte[]>> sendPhoto = new ArrayList<>();
-			for(String x : phoneContacts){
-				Map<String, byte[]> mapPhoto;
-				try {
-					mapPhoto = db.getImage(x);
-					if(!mapPhoto.isEmpty()){
-						sendPhoto.add(mapPhoto);
+					for(String x : phoneContacts){
+						Set<String> regIdSet = db.readFromFile(x);
+						if(!regIdSet.isEmpty()){
+							if(regIdSet.toArray()[0] != null){
+								sendContacts.add(x);
+						}
 					}
-				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
-			}
-			try {
+					System.out.println("PHONE CONTACT: " + phoneContacts + " : PHONE:  " + goingTo);
+					sendContacts(goingTo, GOOGLE_SERVER_KEY, sendContacts);
+				} catch (ClassNotFoundException | SmackException | IOException e) {
+					e.printStackTrace();
+				}}
+				break;
+			case "Feed":
+				{String message = payload.get("msg");
+				String sender = payload.get("GCM_FROM");
+				String time = payload.get("GCM_time");
+				String listContacts = payload.get("Contacts");
+				Gson gson = new Gson();
+				TypeToken<List<String>> token = new TypeToken<List<String>>() {};
+				ArrayList<String> phoneContacts = gson.fromJson(listContacts, token.getType());
+				ArrayList<String> list = new ArrayList<String>();
+				System.out.println("FEED LIST: " + phoneContacts);
+				try {
+					for(String x : phoneContacts){
+						Set<String> regIdSet = db.readFromFile(x);
+						list.add((String)regIdSet.toArray()[0]);
+						}
+					sendFeed(list, message, sender, time);
+				} catch (ClassNotFoundException | SmackException | IOException e) {
+					e.printStackTrace();
+				}}
+				break;
+			case "ProfilePhoto":
+					{String profileImage =  payload.get("ProfilePic");
+					String contactList = payload.get("ContactList");
+					String user = payload.get("UserOwner");
+					Gson gson = new Gson();
+					TypeToken<List<String>> token = new TypeToken<List<String>>() {};
+					ArrayList<String> phoneContacts = gson.fromJson(contactList, token.getType());
+					System.out.println("Image STRING: " + profileImage + " + Image CONTACT: " + contactList + " : Image USER: " + user);
+					byte[] imageByte = Base64.decode(profileImage);
+					System.out.println("Image BYTES: " + imageByte);
+					db.saveImage(user, imageByte);//Save image to database
+					try{
+						sendPhoto(phoneContacts, user);
+					}catch(ClassNotFoundException | SmackException | IOException e){
+						e.printStackTrace();	
+					}}
+					break;
+			case "GetPhoto":
+				{String list = payload.get("List");
 				String goingTo =  payload.get("Phone");
-				sendContactsPhoto(goingTo, GOOGLE_SERVER_KEY, sendPhoto);
-			} catch (ClassNotFoundException | SmackException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}else if("Deactivate".equals(action)){
-			String number = payload.get("number");
-			String confirm = "";
-			try{
-				
-			}catch(Exception ioe){
-				ioe.printStackTrace();
-			}
-			Set<String> regIdSet = null;
-			try {
-				regIdSet = db.readFromFile(number);
-			} catch (SQLException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			String toDeviceRegId = (String) (regIdSet.toArray())[0];
-			
-			if(db.deleteContact(number))
-				confirm = "y";
-			else 
-				confirm = "n";
-			try {
-				
-				sendDeleteInfo(toDeviceRegId, GOOGLE_SERVER_KEY, confirm);
-			} catch (ClassNotFoundException | SmackException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-		}else if("Typing".equals(action)){
-			String type = payload.get("isUserTyping");
-			String mobileNumTo = payload.get("GCM_contactId");
-			Set<String> regIdSet;
-			try {
-				regIdSet = db.readFromFile(mobileNumTo);
+				Gson gson = new Gson();
+				TypeToken<List<String>> token = new TypeToken<List<String>>() {};
+				List<String> phoneContacts = gson.fromJson(list, token.getType());
+				ArrayList<Map<String, byte[]>> sendPhoto = new ArrayList<>();
+				try {
+					for(String x : phoneContacts){
+						Map<String, byte[]> mapPhoto;
+						mapPhoto = db.getImage(x);
+						if(!mapPhoto.isEmpty()){
+							sendPhoto.add(mapPhoto);
+						}
+				}
+					sendContactsPhoto(goingTo, GOOGLE_SERVER_KEY, sendPhoto);
+				} catch (ClassNotFoundException | SmackException | IOException e) {
+					e.printStackTrace();
+				}}
+				break;
+			case "Deactivate":
+				{String number = payload.get("number");
+				Set<String> regIdSet = db.readFromFile(number);
 				String toDeviceRegId = (String) (regIdSet.toArray())[0];
-				String isit = "";
-				if(type.equals("y"))
-					isit = "y";
-				else
-					isit = "n";
-				sendTyping(toDeviceRegId, isit);
-			} catch (SQLException | NotConnectedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			
+				String confirm = (db.deleteContact(number) ? "y" : "n");
+				try {						
+					sendDeleteInfo(toDeviceRegId, GOOGLE_SERVER_KEY, confirm);
+				} catch (ClassNotFoundException | SmackException | IOException e) {
+					e.printStackTrace();
+				}}
+				break;
+			case "Typing":
+				{String type = payload.get("isUserTyping");
+				String mobileNumTo = payload.get("GCM_contactId");
+				try {
+					Set<String> regIdSet = db.readFromFile(mobileNumTo);
+					String toDeviceRegId = (String) (regIdSet.toArray())[0];
+					String isit = (type.equals("y")?"y" : "n");
+					sendTyping(toDeviceRegId, isit);
+				} catch (NotConnectedException e) {
+					e.printStackTrace();
+				}}			
+				break;
 		}
-		db.dbShutdown();
 	}
 
 

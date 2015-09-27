@@ -38,33 +38,46 @@ public class RegIdManager {
 	}
 
 
-	public Set<String> readFromFile(String mobi) throws SQLException{
+	public Set<String> readFromFile(String mobi){
 		Set<String> regIdSet = new HashSet<String>();
 		String query = "Select * from chatServer.RegTable WHERE Mobile ='" + mobi + "'";
 
-        Statement s = con.createStatement();
-        ResultSet rs = s.executeQuery(query);
-        
-        while (rs.next()) {
-			regIdSet.add(rs.getString(2));
+        Statement s;
+		try {
+			s = con.createStatement();
+	        ResultSet rs = s.executeQuery(query);
+	        
+	        while (rs.next()) {
+				regIdSet.add(rs.getString(2));
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+
 		return regIdSet;
-		
-		}
+	}
  	
 	/**
 	 * Get the profile picture from the database
 	 * @throws SQLException 
 	 * */
-	public Map<String, byte[]> getImage(String pNo) throws SQLException{
+	public Map<String, byte[]> getImage(String pNo){
 		Map<String, byte[]> photoMap = new HashMap<>();
 		String query = "Select * from chatServer.ProfileTable WHERE UserMobile ='" + pNo + "'";
 		
-        Statement s = con.createStatement();
-        ResultSet rs = s.executeQuery(query);
-        
-        while (rs.next()) {
-			photoMap.put(rs.getString(1), rs.getBytes(2));
+        Statement s;
+		try {
+			s = con.createStatement();
+	        ResultSet rs = s.executeQuery(query);
+	        
+	        while (rs.next()) {
+				photoMap.put(rs.getString(1), rs.getBytes(2));
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return photoMap;
 	}

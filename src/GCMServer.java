@@ -40,13 +40,11 @@ public class GCMServer extends HttpServlet {
        
     @Override
 	public void init() throws ServletException {
-			// TODO Auto-generated method stub
 			super.init();
 			ccsClient = new SmackClient();
 				try {
 					ccsClient.connect("f", GOOGLE_SERVER_KEY);
 				} catch (XMPPException | SmackException | IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			
@@ -57,14 +55,12 @@ public class GCMServer extends HttpServlet {
      */
     public GCMServer() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
 		doPost(request, response);
 	}
 
@@ -91,11 +87,6 @@ public class GCMServer extends HttpServlet {
 					String profilePic = request.getParameter("ProfilePic");
 					System.out.println("User Owner: " + userOwner);
 					sendProfilePhoto(jsonPhoneList, userOwner, profilePic);			
-				}else if(request.getParameter("Contacts") != null){
-					String theList = request.getParameter("List");
-					String number = request.getParameter("Phone");
-					System.out.println("The host number is: " + number);
-					getContacts(theList, number);
 				}
 			} catch (Exception ioe) {
 				out.println("ERROR");
@@ -116,30 +107,18 @@ public class GCMServer extends HttpServlet {
 		Set<String> regIdSet = null;
 		for(String x : phoneContacts){
 			Map<String, byte[]> mapPhoto;
-			try {
-				mapPhoto = db.getImage(x);
-				if(!mapPhoto.isEmpty()){
-					sendPhoto.add(mapPhoto);
-				}
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
+			mapPhoto = db.getImage(x);
+			if(!mapPhoto.isEmpty()){
+				sendPhoto.add(mapPhoto);
+			}			
 			//Get regId of the number
-			try {
-				regIdSet = db.readFromFile(x);
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			regIdSet = db.readFromFile(x);
 		}
 		
 		//Send the Phhoto
 		try {
 			ccsClient.sendContactsPhoto((String)regIdSet.toArray()[0], GOOGLE_SERVER_KEY, sendPhoto);
 		} catch (ClassNotFoundException | SmackException | IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -154,51 +133,13 @@ public class GCMServer extends HttpServlet {
 		ArrayList<String> list = new ArrayList<String>();
 		for(String x : phoneContacts){
 			Set<String> regIdSet;
-			try {
-				regIdSet = db.readFromFile(x);
-				list.add((String)regIdSet.toArray()[0]);
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			regIdSet = db.readFromFile(x);
+			list.add((String)regIdSet.toArray()[0]);
 			}
-		}
-		
 		try{
 			ccsClient.sendPhoto(list, userOwner);
 		}catch(ClassNotFoundException | SmackException | IOException e){
-			// TODO Auto-generated catch block
 			e.printStackTrace();	
-		}
-	}
-	
-	private void getContacts(String list, String phone){
-		Gson gson = new Gson();
-		TypeToken<List<String>> token = new TypeToken<List<String>>() {};
-		List<String> phoneContacts = gson.fromJson(list, token.getType());
-		System.out.println("PHONE CONTACT: " + phoneContacts);
-		ArrayList<String> sendContacts = new ArrayList<>();
-		for(String x : phoneContacts){
-			Set<String> regIdSet;
-			try {
-				x = x.replaceAll("\\s", "");
-				regIdSet = db.readFromFile(x);
-				if(!regIdSet.isEmpty()){
-					String numb = (String) (regIdSet.toArray())[0];
-					if(numb != null)
-						sendContacts.add(x);
-				}
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			try {
-				System.out.println("PHONE:  " + phone);
-				ccsClient.sendContacts(phone, GOOGLE_SERVER_KEY, sendContacts);
-			} catch (ClassNotFoundException | SmackException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 		}
 	}
 	
@@ -219,7 +160,6 @@ public class GCMServer extends HttpServlet {
 	
 	@Override
 	public void destroy() {
-		// TODO Auto-generated method stub
 		super.destroy();
 		if(db != null)
 			db.dbShutdown();
