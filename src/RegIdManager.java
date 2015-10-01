@@ -58,6 +58,27 @@ public class RegIdManager {
 
 		return regIdSet;
 	}
+	
+	public Set<String> readFromFile(String to, String from){
+		Set<String> regIdSet = new HashSet<String>();
+		String query = "Select * from chatServer.RegTable WHERE Mobile ='" + to + "'" + "OR Mobile ='" + from + "'";
+
+        Statement s;
+		try {
+			s = con.createStatement();
+	        ResultSet rs = s.executeQuery(query);
+	        
+	        while (rs.next()) {
+				regIdSet.add(rs.getString(2));
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return regIdSet;
+	}
  	
 	/**
 	 * Get the profile picture from the database

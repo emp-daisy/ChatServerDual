@@ -145,6 +145,18 @@ public class SmackClient {
 		connection.addAsyncStanzaListener(stanza, filter);
 	}
 	
+	public void sendReceipt(String from, String receiptNo) throws NotConnectedException{
+		String messageId = getRandomMessageId();
+		Map<String, String> payload = new HashMap<String, String>();
+		payload.put("Type", "Receipt");
+		payload.put("receiptNo", receiptNo);
+		String collapseKey = "sample";
+		Long timeToLive = 10000L;
+		Boolean delayWhileIdle = true;
+		send(createJsonMessage(from, messageId, payload, collapseKey, timeToLive, delayWhileIdle));
+		System.out.println("Server Receipt to: '" + from);
+	}
+	
 	public void sendMessage(String toDeviceRegId, final String GOOGLE_SERVER_KEY , String message, String contactId, String sender, String type, String time) throws SmackException, IOException, ClassNotFoundException {
 		
 		if(contactId == "")
@@ -401,8 +413,10 @@ public class SmackClient {
 				String mobileNumFrom = payload.get("GCM_sender");
 				System.out.println("Message is: " + userMessage + " : Contact is: " + mobileNumTo + " : Sender is: " + mobileNumFrom);
 				try{
-					Set<String> regIdSet = db.readFromFile(mobileNumTo);
+					Set<String> regIdSet = db.readFromFile(mobileNumTo, mobileNumFrom);
 					String toDeviceRegId = (String) (regIdSet.toArray())[0];
+					String fromDevice = (String) (regIdSet.toArray())[1];
+					sendReceipt(fromDevice, "1");
 					sendMessage(toDeviceRegId, GOOGLE_SERVER_KEY, userMessage, mobileNumTo, mobileNumFrom, type, time);
 				}catch(Exception ioe){
 					ioe.printStackTrace();
@@ -509,6 +523,15 @@ public class SmackClient {
 				} catch (NotConnectedException e) {
 					e.printStackTrace();
 				}}			
+				break;
+			case "Receipt":
+				String receiptNo = payload.get("receiptNo");
+				String GCM_number = payload.get("GCM_number");
+				try {
+					sendReceipt(GCM_number, receiptNo);
+				} catch (NotConnectedException e) {
+					e.printStackTrace();
+				}
 				break;
 		}
 	}
