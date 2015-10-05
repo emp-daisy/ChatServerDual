@@ -160,7 +160,7 @@ public class SmackClient {
 	public void sendMessage(String id, String toDeviceRegId, final String GOOGLE_SERVER_KEY , String message, String contactId, String sender, String type, String time) throws SmackException, IOException, ClassNotFoundException {
 		
 		if(contactId == "")
-			contactId = "07944447710";
+			contactId = "";
 		if(type == "")
 			type = "msg";
 		if(time == "")
@@ -415,9 +415,10 @@ public class SmackClient {
 				String msgId = payload.get("GCM_msgId");
 				System.out.println("Message is: " + userMessage + " : Contact is: " + mobileNumTo + " : Sender is: " + mobileNumFrom);
 				try{
-					Set<String> regIdSet = db.readFromFile(mobileNumTo, mobileNumFrom);
+					Set<String> regIdSet = db.readFromFile(mobileNumTo);
+					Set<String> regIdSet2 = db.readFromFileForSender(mobileNumFrom);
 					String toDeviceRegId = (String) (regIdSet.toArray())[0];
-					String fromDevice = (String) (regIdSet.toArray())[1];
+					String fromDevice = (String) (regIdSet2.toArray())[0];
 					sendReceipt(fromDevice, msgId, "1");
 					sendMessage(msgId, toDeviceRegId, GOOGLE_SERVER_KEY, userMessage, mobileNumTo, mobileNumFrom, type, time);
 				}catch(Exception ioe){

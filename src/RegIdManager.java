@@ -59,9 +59,9 @@ public class RegIdManager {
 		return regIdSet;
 	}
 	
-	public Set<String> readFromFile(String to, String from){
+	public Set<String> readFromFileForSender(String from){
 		Set<String> regIdSet = new HashSet<String>();
-		String query = "Select * from chatServer.RegTable WHERE Mobile ='" + to + "'" + "OR Mobile ='" + from + "'";
+		String query = "Select * from chatServer.RegTable WHERE Mobile ='" + from + "'";
 
         Statement s;
 		try {
