@@ -192,7 +192,6 @@ public class SmackClient {
 		String collapseKey = "sample";
 		Long timeToLive = 10000L;
 		Boolean delayWhileIdle = true;
-		System.out.println("About to send contacts");
 		send(createJsonMessage(toDeviceRegId, messageId, payload,
 				collapseKey, timeToLive, delayWhileIdle));
 		System.out.println("App Contacts: " + message);
@@ -436,13 +435,10 @@ public class SmackClient {
 					for(String x : phoneContacts){
 						Set<String> regIdSet = db.readFromFile(x);
 						if(!regIdSet.isEmpty()){
-							if(regIdSet.toArray()[0] != null){
-								sendContacts.add(x);
+							if(regIdSet.toArray()[0] != null){sendContacts.add(x);}
 						}
-					}
-				}
-					System.out.println("PHONE CONTACT: " + phoneContacts + " : PHONE:  " + goingTo);
-					sendContacts(goingTo, GOOGLE_SERVER_KEY, sendContacts);
+				}	System.out.println("PHONE CONTACT: " + phoneContacts + " : PHONE:  " + goingTo);
+					if(!sendContacts.isEmpty()){sendContacts(goingTo, GOOGLE_SERVER_KEY, sendContacts);}
 				} catch (ClassNotFoundException | SmackException | IOException e) {
 					e.printStackTrace();
 				}}
