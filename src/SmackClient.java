@@ -524,14 +524,15 @@ public class SmackClient {
 				}}			
 				break;
 			case "Receipt":
-				String id = payload.get("msgId");
-				String receiptNo = payload.get("receiptNo");
+				{String id = payload.get("msgId");
 				String GCM_number = payload.get("GCM_number");
 				try {
-					sendReceipt(GCM_number, id, receiptNo);
+					Set<String> regIdSet = db.readFromFile(GCM_number);
+					String toDeviceRegId = (String) (regIdSet.toArray())[0];
+					sendReceipt(toDeviceRegId, id, "2");
 				} catch (NotConnectedException e) {
 					e.printStackTrace();
-				}
+				}}
 				break;
 		}
 	}
