@@ -15,4 +15,12 @@
         <servlet-name>GCMServer</servlet-name>
         <url-pattern>/GCMServer</url-pattern>
     </servlet-mapping>
+	<servlet>
+        <servlet-name>DownloadImg</servlet-name>
+        <servlet-class>ImgFolderClass</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DownloadImg</servlet-name>
+        <url-pattern>/ImgFolderClass/*</url-pattern>
+    </servlet-mapping>
 </web-app>
