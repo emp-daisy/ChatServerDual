@@ -86,6 +86,7 @@ public class GCMServer extends HttpServlet {
 					String userOwner = request.getParameter("UserOwner");
 					String profilePic = request.getParameter("ProfilePic");
 					System.out.println("User Owner: " + userOwner);
+					System.out.println("Contact List: " + jsonPhoneList);
 					sendProfilePhoto(jsonPhoneList, userOwner, profilePic);			
 				}
 			} catch (Exception ioe) {
@@ -146,7 +147,7 @@ public class GCMServer extends HttpServlet {
 	private void generatePhoto(String mobile, byte[] img){
 		FileOutputStream fileOuputStream;
 		try {
-			fileOuputStream = new FileOutputStream("WebContent/WEB-INF/ProfilePics/" + mobile + ".jpg");
+			fileOuputStream = new FileOutputStream("ProfilePics/" + mobile + ".jpg");
 			fileOuputStream.write(img);
 			fileOuputStream.close();
 		} catch (FileNotFoundException e1) {

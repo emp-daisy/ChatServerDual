@@ -276,11 +276,9 @@ public class SmackClient {
 		Sender sender = new Sender(GOOGLE_SERVER_KEY);
 		
 		//ServerIP
-		String message = "http://192.168.1.5:8080/ChatServerDual/GCMServer/WebContent/ProfilePics/" + from + ".jpg";
 		com.google.android.gcm.server.Message messageBuilder = new com.google.android.gcm.server.Message.Builder().timeToLive(30)
 				.delayWhileIdle(true)
 				.addData("Type", "Photo")
-				.addData("msg", message)
 				.addData("GCM_FROM", from)
 				.build();
 
