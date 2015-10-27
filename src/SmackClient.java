@@ -289,6 +289,26 @@ public class SmackClient {
 		System.out.println(result);
 	}
 	
+	public void sendGroupMessage(ArrayList<String> contactList, String from, String message, String groupName, String id, String time) throws SmackException, IOException, ClassNotFoundException {
+		Sender sender = new Sender(GOOGLE_SERVER_KEY);
+		
+		//ServerIP
+		com.google.android.gcm.server.Message messageBuilder = new com.google.android.gcm.server.Message.Builder().timeToLive(30)
+				.delayWhileIdle(true)
+				.addData("Type", "GroupMessage")
+				.addData("GCM_FROM", from)
+				.addData("GCM_msg", message)
+				.addData("GroupName", groupName)
+				.addData("GCM_msgId", id)
+				.addData("GCM_time", time)
+				.build();
+
+		for(String x : contactList)
+			System.out.println(x);
+		MulticastResult result = sender.send(messageBuilder, contactList, 1);
+		System.out.println(result);
+	}
+	
 	//XML Packet Extension
 	private static final class GcmPacketExtension extends DefaultExtensionElement{
 
@@ -531,6 +551,30 @@ public class SmackClient {
 				} catch (NotConnectedException e) {
 					e.printStackTrace();
 				}}
+				break;
+			case "GroupMessage":
+			{String message = payload.get("msg");
+			String sender = payload.get("GCM_FROM");
+			String groupName = payload.get("GroupName");
+			String time = payload.get("GCM_time");
+			String listContacts = payload.get("contacts");
+			System.out.println(listContacts);
+			String msgId = payload.get("GCM_msgId");
+			Gson gson = new Gson();
+			TypeToken<List<String>> token = new TypeToken<List<String>>() {};
+			ArrayList<String> phoneContacts = gson.fromJson(listContacts, token.getType());
+			ArrayList<String> list = new ArrayList<String>();
+			System.out.println("Group LIST: " + phoneContacts);
+			try {
+				for(String x : phoneContacts){
+					Set<String> regIdSet = db.readFromFile(x);
+					list.add((String)regIdSet.toArray()[0]);
+					}
+				sendGroupMessage(list, sender, message, groupName, msgId, time);
+				//sendGroupMessage(list, message, sender, time);
+			} catch (ClassNotFoundException | SmackException | IOException e) {
+				e.printStackTrace();
+			}}
 				break;
 		}
 	}
