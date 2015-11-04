@@ -289,6 +289,25 @@ public class SmackClient {
 		System.out.println(result);
 	}
 	
+	public void sendGroupList(String name, ArrayList<String> contactList, String list, String groupId, String creator) throws SmackException, IOException, ClassNotFoundException {
+		Sender sender = new Sender(GOOGLE_SERVER_KEY);
+		Gson gson = new Gson();
+		//ServerIP
+		com.google.android.gcm.server.Message messageBuilder = new com.google.android.gcm.server.Message.Builder().timeToLive(30)
+				.delayWhileIdle(true)
+				.addData("Type", "NewGroup")
+				.addData("groupName", name)
+				.addData("groupList", list)
+				.addData("groupId", groupId)
+				.addData("creator", creator)
+				.build();
+
+		for(String x : contactList)
+			System.out.println("Group Contact: " + x);
+		MulticastResult result = sender.send(messageBuilder, contactList, 1);
+		System.out.println(result);
+	}
+	
 	public void sendGroupMessage(ArrayList<String> contactList, String from, String message, String groupName, String id, String time, String contactListString) throws SmackException, IOException, ClassNotFoundException {
 		Sender sender = new Sender(GOOGLE_SERVER_KEY);
 		
@@ -576,6 +595,32 @@ public class SmackClient {
 			} catch (ClassNotFoundException | SmackException | IOException e) {
 				e.printStackTrace();
 			}}
+				break;
+			case "NewGroup":
+				String groupName = payload.get("groupName");
+				String groupList = payload.get("groupList");
+				String groupId = payload.get("groupId");
+				String creator = payload.get("creator");
+				
+				Gson gson = new Gson();
+				TypeToken<List<String>> token = new TypeToken<List<String>>() {};
+				ArrayList<String> groupContacts = gson.fromJson(groupList, token.getType());
+				ArrayList<String> list = new ArrayList<String>();
+				System.out.println("Group LIST: " + groupContacts);
+				
+				try {
+					for(String x : groupContacts){
+						if(x != creator){
+							Set<String> regIdSet = db.readFromFile(x);
+							list.add((String)regIdSet.toArray()[0]);
+						}
+					}
+					sendGroupList(groupName, list, groupList, groupId, creator);
+					//sendGroupMessage(list, sender, message, groupName, msgId, time, listContacts);
+					//sendGroupMessage(list, message, sender, time);
+				} catch (ClassNotFoundException | SmackException | IOException e) {
+					e.printStackTrace();
+				}
 				break;
 		}
 	}
