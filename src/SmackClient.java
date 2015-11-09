@@ -272,6 +272,23 @@ public class SmackClient {
 		System.out.println("is Typing Sent");
 	}
 	
+	public void sendContactDelete(ArrayList<String> contactList, String contact, String id) throws SmackException, IOException, ClassNotFoundException {
+		Sender sender = new Sender(GOOGLE_SERVER_KEY);
+		
+		//ServerIP
+		com.google.android.gcm.server.Message messageBuilder = new com.google.android.gcm.server.Message.Builder().timeToLive(30)
+				.delayWhileIdle(true)
+				.addData("Type", "DeleteContactFromGroup")
+				.addData("GCM_contactId", contact)
+				.addData("GCM_groupId", id)
+				.build();
+
+		for(String x : contactList)
+			System.out.println(x);
+		MulticastResult result = sender.send(messageBuilder, contactList, 1);
+		System.out.println(result);
+	}
+	
 	public void sendPhoto(ArrayList<String> contactList, String from) throws SmackException, IOException, ClassNotFoundException {
 		Sender sender = new Sender(GOOGLE_SERVER_KEY);
 		
@@ -587,9 +604,12 @@ public class SmackClient {
 			System.out.println("Group LIST: " + phoneContacts);
 			try {
 				for(String x : phoneContacts){
-					Set<String> regIdSet = db.readFromFile(x);
-					list.add((String)regIdSet.toArray()[0]);
+					System.out.println(x + " and " + sender);
+					if(!x.equals(sender)){
+						Set<String> regIdSet = db.readFromFile(x);
+						list.add((String)regIdSet.toArray()[0]);
 					}
+				}
 				sendGroupMessage(list, sender, message, groupName, msgId, time, listContacts);
 				//sendGroupMessage(list, message, sender, time);
 			} catch (ClassNotFoundException | SmackException | IOException e) {
@@ -618,6 +638,29 @@ public class SmackClient {
 					sendGroupList(groupName, list, groupList, groupId, creator);
 					//sendGroupMessage(list, sender, message, groupName, msgId, time, listContacts);
 					//sendGroupMessage(list, message, sender, time);
+				} catch (ClassNotFoundException | SmackException | IOException e) {
+					e.printStackTrace();
+				}
+				break;
+			case "DeleteUserFromGroup":
+				String contact = payload.get("GCM_contactId");
+				String contactList = payload.get("contacts");
+				String groupID = payload.get("GCM_groupId");
+				
+				Gson gson1 = new Gson();
+				TypeToken<List<String>> token1 = new TypeToken<List<String>>() {};
+				ArrayList<String> groupContacts1 = gson1.fromJson(contactList, token1.getType());
+				ArrayList<String> list1 = new ArrayList<String>();
+				System.out.println("Group LIST: " + groupContacts1);
+				
+				try {
+					for(String x : groupContacts1){
+						if(!x.equals(contact)){
+							Set<String> regIdSet = db.readFromFile(x);
+							list1.add((String)regIdSet.toArray()[0]);
+						}
+					}
+					sendContactDelete(list1, contact, groupID);
 				} catch (ClassNotFoundException | SmackException | IOException e) {
 					e.printStackTrace();
 				}
